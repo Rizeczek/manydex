@@ -305,7 +305,6 @@ function Main({ onStart }) {
       </div>
       <div class="stack">
         <button type="button" class="btn cream" onClick={onStart}>Start</button>
-        <p class="fine center light-soft">Data slouží jen pro diplomovou práci.</p>
       </div>
     </div>
   );
@@ -515,8 +514,28 @@ function Quiz({ kind, label, questions, nick, onDone }) {
 
 // ---------- Karty pojmů ----------
 
+const ANIM_MS = 420;
+
+function TermCard({ term, className }) {
+  return (
+    <article class={`term-card ${className}`}>
+      <div class="card-head">
+        <span class="term-code">{term.code}</span>
+        <img src="assets/logomark.svg" alt="" class="card-mark" />
+      </div>
+      <div class="illu">
+        <img src={`assets/${term.code}.svg`} alt={term.czName} />
+      </div>
+      <h2 class="term-name">{term.czName}</h2>
+      <p class="term-def">{term.definition}</p>
+    </article>
+  );
+}
+
 function Priming({ nick, startedAt, onTimeUp, onDone }) {
   const [index, setIndex] = useState(0);
+  // Probíhající přechod: dir 1 = Další (karta odskočí doleva), -1 = Zpět (karta přijede zprava)
+  const [anim, setAnim] = useState(null);
   const [now, setNow] = useState(Date.now());
   const [saving, setSaving] = useState(false);
   const [touchX, setTouchX] = useState(null);
@@ -532,7 +551,34 @@ function Priming({ nick, startedAt, onTimeUp, onDone }) {
     if (left === 0) onTimeUp(index + 1);
   }, [left === 0]);
 
-  const card = terms[index];
+  function go(dir) {
+    if (anim) return;
+    const to = index + dir;
+    if (to < 0 || to >= terms.length) return;
+    setAnim({ dir, from: index, to });
+    setTimeout(() => {
+      setIndex(to);
+      setAnim(null);
+    }, ANIM_MS);
+  }
+
+  // Který obrázek je nahoře a který pod ní, včetně průběhu animace
+  let top = index;
+  let topClass = '';
+  let under = index + 1 < terms.length ? index + 1 : null;
+  let underClass = 'behind';
+  if (anim && anim.dir === 1) {
+    top = anim.from;
+    topClass = 'fly-left';
+    under = anim.to;
+    underClass = 'promote';
+  } else if (anim && anim.dir === -1) {
+    top = anim.to;
+    topClass = 'enter-right';
+    under = anim.from;
+    underClass = 'shrink';
+  }
+
   const last = index === terms.length - 1;
 
   return (
@@ -547,34 +593,24 @@ function Priming({ nick, startedAt, onTimeUp, onDone }) {
         <span class="small strong muted">{index + 1} / {terms.length}</span>
       </div>
 
-      <div class="deck grow">
-        <div class="deck-edge" />
-        <article
-          class="term-card"
-          onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
-          onTouchEnd={(e) => {
-            if (touchX === null) return;
-            const dx = e.changedTouches[0].clientX - touchX;
-            if (dx < -50 && index < terms.length - 1) setIndex(index + 1);
-            if (dx > 50 && index > 0) setIndex(index - 1);
-            setTouchX(null);
-          }}
-        >
-          <div class="card-head">
-            <span class="term-code">{card.code}</span>
-            <img src="assets/logomark.svg" alt="" class="card-mark" />
-          </div>
-          <div class="illu">
-            <img src={`assets/${card.code}.svg`} alt={card.czName} />
-          </div>
-          <h2 class="term-name">{card.czName}</h2>
-          <p class="term-def">{card.definition}</p>
-        </article>
+      <div
+        class="deck-stage"
+        onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          if (touchX === null) return;
+          const dx = e.changedTouches[0].clientX - touchX;
+          if (dx < -50) go(1);
+          if (dx > 50) go(-1);
+          setTouchX(null);
+        }}
+      >
+        {under !== null && <TermCard key={`card-${under}`} term={terms[under]} className={underClass} />}
+        <TermCard key={`card-${top}`} term={terms[top]} className={topClass} />
       </div>
 
       <div class="row gap-sm">
-        <button type="button" class="btn outline grow-1" disabled={index === 0} onClick={() => setIndex(index - 1)}>Zpět</button>
-        <button type="button" class="btn secondary grow-2" disabled={last} onClick={() => setIndex(index + 1)}>Další</button>
+        <button type="button" class="btn outline grow-1" disabled={index === 0 || !!anim} onClick={() => go(-1)}>Zpět</button>
+        <button type="button" class="btn secondary grow-2" disabled={last || !!anim} onClick={() => go(1)}>Další</button>
       </div>
 
       <button
