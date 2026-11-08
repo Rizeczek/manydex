@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import terms from '../data/terms.json';
 import tests from '../data/tests.json';
 import { rpc } from './api.js';
+import Room from './room.jsx';
 import './styles.css';
 
 const PID_KEY = 'manydex_pid';
@@ -25,7 +26,8 @@ function nextView(s) {
   if (!s.pre_done) return 'pretestIntro';
   if (!s.priming_done) return 'primingIntro';
   if (s.post_done) return 'done';
-  return s.post_unlocked ? 'postIntro' : 'waiting';
+  if (s.post_unlocked) return 'postIntro';
+  return s.mode === 'online' ? 'room' : 'waiting';
 }
 
 function formatTime(ms) {
@@ -213,6 +215,10 @@ function App() {
 
       {view === 'waiting' && (
         <Waiting mode={st?.mode} onCheck={() => advance()} nick={nick} />
+      )}
+
+      {view === 'room' && (
+        <Room pid={pid} nick={nick} onCheck={() => advance()} />
       )}
 
       {view === 'postIntro' && (
