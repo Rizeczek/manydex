@@ -27,6 +27,14 @@ jobs:
       - name: Sestavení aplikace
         run: npm run build
 
+      - name: Úprava cílové složky
+        id: dir
+        env:
+          TARGET: ${{ secrets.FTP_TARGET_DIR }}
+        run: |
+          d="${TARGET%/}/"
+          echo "dir=$d" >> "$GITHUB_OUTPUT"
+
       - name: Nahrání na Wedos přes FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -34,4 +42,4 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist/
-          server-dir: ${{ secrets.FTP_TARGET_DIR }}
+          server-dir: ${{ steps.dir.outputs.dir }}
