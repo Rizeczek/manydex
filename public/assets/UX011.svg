@@ -1,0 +1,37 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Třídění karet: věci se při stěhování třídí do krabic podle toho, co k sobě patří">
+<g transform="translate(8 7)" fill="#F7B538">
+<path d="M110 310 H280 L300 292 V402 L280 420 H110 Z"></path>
+<path d="M350 310 H520 L540 292 V402 L520 420 H350 Z"></path>
+</g>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M60 420 H590"></path>
+<path d="M110 310 L130 292 H300 L280 310"></path>
+<path d="M350 310 L370 292 H540 L520 310"></path>
+</g>
+<g fill="#FBF9F5" stroke="#22302F" stroke-width="3.5" stroke-linejoin="round">
+<rect x="140" y="262" width="20" height="48" rx="2"></rect>
+<rect x="164" y="270" width="18" height="40" rx="2"></rect>
+<rect x="186" y="256" width="22" height="54" rx="2"></rect>
+<rect x="384" y="270" width="34" height="40" rx="4"></rect>
+<rect x="440" y="258" width="40" height="52" rx="6"></rect>
+<rect x="286" y="150" width="22" height="48" rx="2" transform="rotate(-15 297 174)"></rect>
+<rect x="334" y="176" width="28" height="32" rx="4"></rect>
+</g>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M144 274 H156 M190 270 H204 M190 278 H204" stroke-width="2.5"></path>
+<path d="M418 280 C434 280 434 300 418 300"></path>
+<path d="M444 270 H476" stroke-width="3"></path>
+<path d="M362 184 C374 184 374 200 362 200"></path>
+<rect x="110" y="310" width="170" height="110"></rect>
+<path d="M280 310 L300 292 V402 L280 420"></path>
+<rect x="350" y="310" width="170" height="110"></rect>
+<path d="M520 310 L540 292 V402 L520 420"></path>
+<path d="M170 340 H220 M410 340 H460" stroke-width="3"></path>
+</g>
+<g fill="none" stroke="#DD4A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+<path d="M280 190 Q222 186 202 240" stroke-dasharray="3 10"></path>
+<path d="M190 232 L201 245 L210 231"></path>
+<path d="M352 216 Q400 216 418 252" stroke-dasharray="3 10"></path>
+<path d="M406 246 L419 254 L423 239"></path>
+</g>
+</svg>

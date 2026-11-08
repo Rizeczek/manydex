@@ -1,0 +1,17 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Efekt Zeigarnikové: hlava z profilu, v ní lístek s jedním nedokončeným úkolem">
+<path transform="translate(10 8)" d="M140 540 C160 496 200 480 222 470 C220 440 206 420 200 380 C185 290 210 185 300 172 C360 164 395 205 394 262 L420 302 C424 308 418 313 410 314 L398 316 C402 326 400 334 396 340 C400 348 396 360 388 366 C384 384 368 392 345 392 L340 470 C372 478 430 492 460 540" fill="#F7B538"></path>
+<path d="M140 540 C160 496 200 480 222 470 C220 440 206 420 200 380 C185 290 210 185 300 172 C360 164 395 205 394 262 L420 302 C424 308 418 313 410 314 L398 316 C402 326 400 334 396 340 C400 348 396 360 388 366 C384 384 368 392 345 392 L340 470 C372 478 430 492 460 540" fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+<g transform="rotate(-6 300 262)">
+<rect x="248" y="214" width="104" height="96" rx="6" fill="#FBF9F5" stroke="#22302F" stroke-width="3.5"></rect>
+<rect x="262" y="231" width="14" height="14" rx="3" fill="none" stroke="#22302F" stroke-width="3"></rect>
+<path d="M264 237 l4 4 l8 -9" fill="none" stroke="#22302F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M288 238 H334" stroke="#A39A8F" stroke-width="4" stroke-linecap="round"></path>
+<rect x="262" y="255" width="14" height="14" rx="3" fill="none" stroke="#22302F" stroke-width="3"></rect>
+<path d="M264 261 l4 4 l8 -9" fill="none" stroke="#22302F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M288 262 H326" stroke="#A39A8F" stroke-width="4" stroke-linecap="round"></path>
+<path d="M286 287 H338" stroke="#DD4A35" stroke-width="12" stroke-linecap="round"></path>
+<rect x="262" y="279" width="14" height="14" rx="3" fill="#FBF9F5" stroke="#22302F" stroke-width="3"></rect>
+<path d="M288 286 H332" stroke="#22302F" stroke-width="4" stroke-linecap="round"></path>
+</g>
+<path d="M378 160 L384 142 M394 170 L408 156 M404 188 L422 182" fill="none" stroke="#DD4A35" stroke-width="4" stroke-linecap="round"></path>
+</svg>

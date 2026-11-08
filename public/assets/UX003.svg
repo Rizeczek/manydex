@@ -1,0 +1,18 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Zpětná vazba: po stisku tlačítka na přechodu se rozsvítí kontrolka čekání">
+<g transform="translate(8 7)" fill="#F7B538">
+<rect x="240" y="150" width="150" height="230" rx="14"></rect>
+<path d="M410 292 H352 a8 8 0 0 0 0 16 H410 V314 a16 16 0 0 0 16 16 H454 a16 16 0 0 0 16 -16 V294 a16 16 0 0 0 -16 -16 H426 a16 16 0 0 0 -16 16 Z"></path>
+</g>
+<rect x="271" y="180" width="100" height="60" rx="8" fill="#DD4A35"></rect>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M315 380 V584"></path>
+<path d="M390 310 V366 a14 14 0 0 1 -14 14 H254 a14 14 0 0 1 -14 -14 V164 a14 14 0 0 1 14 -14 H376 a14 14 0 0 1 14 14 V290"></path>
+<rect x="265" y="175" width="100" height="60" rx="8"></rect>
+<circle cx="315" cy="300" r="30"></circle>
+<circle cx="315" cy="300" r="18"></circle>
+<path d="M410 292 H352 a8 8 0 0 0 0 16 H410 V314 a16 16 0 0 0 16 16 H454 a16 16 0 0 0 16 -16 V294 a16 16 0 0 0 -16 -16 H426 a16 16 0 0 0 -16 16 Z"></path>
+<path d="M350 282 l6 -9 M350 318 l6 9" stroke-width="3"></path>
+</g>
+<path d="M302 190 H328 L315 205 L328 220 H302 L315 205 Z" fill="none" stroke="#FBF9F5" stroke-width="3.5" stroke-linejoin="round"></path>
+<path d="M248 190 L232 182 M248 205 H230 M248 220 L232 228 M382 190 L398 182 M382 205 H400 M382 220 L398 228" fill="none" stroke="#DD4A35" stroke-width="4" stroke-linecap="round"></path>
+</svg>

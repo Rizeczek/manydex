@@ -1,0 +1,26 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Efekt estetiky a použitelnosti: obyčejná a designová konvice se stejným tlačítkem, designová působí lépe">
+<g transform="translate(9 7)" fill="#F7B538">
+<circle cx="440" cy="346" r="76"></circle>
+<rect x="372" y="424" width="136" height="16" rx="8"></rect>
+</g>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M70 440 H590"></path>
+<path d="M120 424 L132 270 H232 L244 424 Z"></path>
+<path d="M131 290 C96 292 96 380 123 390"></path>
+<path d="M231 285 L262 268 L247 302"></path>
+<path d="M150 270 V258 H214 V270 M176 258 V250 H188 V258"></path>
+<rect x="110" y="424" width="144" height="16" rx="2"></rect>
+<circle cx="440" cy="346" r="76"></circle>
+<path d="M384 295 C388 206 492 206 496 295"></path>
+<path d="M514 329 Q550 318 566 290 L573 296 Q562 332 514 348"></path>
+<circle cx="440" cy="262" r="8"></circle>
+<rect x="372" y="424" width="136" height="16" rx="8"></rect>
+</g>
+<circle cx="232" cy="432" r="5" fill="#DD4A35"></circle>
+<circle cx="486" cy="432" r="5" fill="#DD4A35"></circle>
+<g fill="#22302F">
+<path d="M556 214 Q558 228 572 230 Q558 232 556 246 Q554 232 540 230 Q554 228 556 214 Z"></path>
+<path d="M352 232 Q353 241 362 242 Q353 243 352 252 Q351 243 342 242 Q351 241 352 232 Z"></path>
+<path d="M566 372 Q567 380 575 381 Q567 382 566 390 Q565 382 557 381 Q565 380 566 372 Z"></path>
+</g>
+</svg>

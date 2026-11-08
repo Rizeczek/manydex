@@ -6,16 +6,18 @@ import { rpc } from './api.js';
 import './styles.css';
 
 const PID_KEY = 'manydex_pid';
+const NICK_KEY = 'manydex_nick';
 const TIMER_MS = 7 * 60 * 1000;
 const POLL_MS = 8000;
+const UNKNOWN = '?';
 
 const MODE_LABEL = { onsite: 'Na místě', online: 'Online' };
 
 function progressLabel(s) {
-  if (!s.pre_done) return 'pre-test';
+  if (!s.pre_done) return 'vstupní test';
   if (!s.priming_done) return 'karty pojmů';
   if (s.post_done) return 'hotovo';
-  return 'post-test';
+  return 'výstupní test';
 }
 
 // Kam má student jít podle uloženého stavu
@@ -23,7 +25,7 @@ function nextView(s) {
   if (!s.pre_done) return 'pretestIntro';
   if (!s.priming_done) return 'primingIntro';
   if (s.post_done) return 'done';
-  return s.post_unlocked ? 'post' : 'waiting';
+  return s.post_unlocked ? 'postIntro' : 'waiting';
 }
 
 function formatTime(ms) {
@@ -33,12 +35,18 @@ function formatTime(ms) {
   return `${m}:${s}`;
 }
 
+function initial(nick) {
+  return (nick || '?').trim().charAt(0).toUpperCase();
+}
+
 // ---------- Kořenová komponenta ----------
 
 function App() {
   const [view, setView] = useState('loading');
   const [pid, setPid] = useState(localStorage.getItem(PID_KEY));
+  const [nick, setNick] = useState(localStorage.getItem(NICK_KEY) || '');
   const [st, setSt] = useState(null);
+  const [viewed, setViewed] = useState(0);
   const [error, setError] = useState('');
 
   async function refresh(id) {
@@ -59,13 +67,15 @@ function App() {
       const s = await refresh(id);
       setView(nextView(s));
     } catch (e) {
-      setError('Připojení se nepovedlo. Zkuste to znovu.');
+      setError('Připojení se nepovedlo. Zkus to znovu.');
     }
   }
 
-  async function startWith(id) {
+  async function startWith(id, name) {
     localStorage.setItem(PID_KEY, id);
+    localStorage.setItem(NICK_KEY, name);
     setPid(id);
+    setNick(name);
     await advance(id);
   }
 
@@ -82,41 +92,65 @@ function App() {
           setPid(null);
           setView('intro');
         } else {
-          setError('Připojení se nepovedlo. Obnovte stránku.');
+          setError('Připojení se nepovedlo. Obnov stránku.');
           setView('intro');
         }
       });
   }, []);
 
+  const bar = (label) => <TopBar nick={nick} label={label} />;
+
   return (
-    <main class="screen">
+    <main class="app">
       {error && <p class="error">{error}</p>}
 
-      {view === 'loading' && <p class="muted">Připojování…</p>}
+      {view === 'loading' && <p class="muted pad">Připojování…</p>}
 
       {view === 'intro' && (
-        <Intro onStart={startWith} onRecover={() => setView('recover')} />
+        <Main onStart={() => setView('mode')} />
       )}
 
-      {view === 'recover' && (
-        <Recover onPick={startWith} onBack={() => setView('intro')} />
-      )}
-
-      {view === 'pretestIntro' && (
-        <Card
-          title="Pre-test"
-          text="Nejdřív odpovězte na 12 otázek. Uvidíte definici a vyberete pojem, který k ní patří. Správnost vám neukážeme."
-          button="Začít pre-test"
-          onNext={async () => {
-            setView('pretest');
+      {view === 'mode' && (
+        <Mode
+          onConfirm={async (name, mode) => {
+            setError('');
+            try {
+              const id = await rpc('create_participant', { p_nickname: name, p_mode: mode });
+              await startWith(id, name);
+            } catch (e) {
+              setError('Něco se nepovedlo. Zkus to znovu.');
+            }
           }}
+          onRecover={() => setView('recover')}
         />
       )}
 
+      {view === 'recover' && (
+        <Recover onPick={startWith} onBack={() => setView('mode')} />
+      )}
+
+      {view === 'pretestIntro' && (
+        <>
+          {bar('Vstupní test')}
+          <div class="stack grow">
+            <span class="eyebrow">Než začneme</span>
+            <h1>12 otázek, žádné známkování</h1>
+            <ul class="tips">
+              <li><Icon name="chart" />Měříme, co víš teď, ještě před hrou. Nejde o tvoje hodnocení.</li>
+              <li><Icon name="help" />Když odpověď neznáš, zvol <b>Nevím / Neznám</b>. Hádání zkresluje výsledky.</li>
+              <li><Icon name="eye" />Správné odpovědi se během testu nezobrazují.</li>
+            </ul>
+          </div>
+          <button type="button" class="btn secondary" onClick={() => setView('pretest')}>Začít test</button>
+        </>
+      )}
+
       {view === 'pretest' && (
-        <QuizScreen
+        <Quiz
           kind="pre"
+          label="Vstupní test"
           questions={tests.pre_test.questions}
+          nick={nick}
           onDone={async (answers) => {
             setError('');
             try {
@@ -124,74 +158,81 @@ function App() {
               await rpc('save_progress', { p_id: pid, p_step: 'pre_done' });
               await advance();
             } catch (e) {
-              setError('Odpovědi se nepodařilo uložit. Zkuste to znovu.');
+              setError('Odpovědi se nepodařilo uložit. Zkus to znovu.');
             }
           }}
         />
       )}
 
       {view === 'primingIntro' && (
-        <Card
-          title="Karty pojmů"
-          text="Projdete 12 karet: pojem, definici a příklad z praxe. Na jednu kartu máte 7 minut. Listujte přejetím prstem, nebo tlačítky Zpět a Další. Až budete hotovi, klepněte na Mám hotovo."
-          button="Začít"
-          onNext={async () => {
-            setError('');
-            try {
-              await rpc('save_progress', { p_id: pid, p_step: 'priming_started' });
-              const s = await refresh(pid);
-              setView('priming');
-            } catch (e) {
-              setError('Nepodařilo se spustit časovač. Zkuste to znovu.');
-            }
-          }}
-        />
+        <>
+          {bar('Karty pojmů')}
+          <div class="stack grow">
+            <span class="eyebrow">Seznam se s pojmy</span>
+            <h1>12 karet, 7 minut</h1>
+            <p>Projdeš karty s pojmy a jejich definicemi. Listuj přejetím prstem nebo tlačítky Zpět a Další. Až budeš hotový, klepni na Mám hotovo.</p>
+          </div>
+          <button
+            type="button"
+            class="btn secondary"
+            onClick={async () => {
+              setError('');
+              try {
+                await rpc('save_progress', { p_id: pid, p_step: 'priming_started' });
+                await refresh(pid);
+                setView('priming');
+              } catch (e) {
+                setError('Nepodařilo se spustit časovač. Zkus to znovu.');
+              }
+            }}
+          >
+            Začít
+          </button>
+        </>
       )}
 
       {view === 'priming' && st?.priming_started_at && (
         <Priming
+          nick={nick}
           startedAt={st.priming_started_at}
-          onTimeUp={() => setView('timeup')}
-          onDone={async () => {
-            setError('');
-            try {
-              await rpc('save_progress', { p_id: pid, p_step: 'priming_done' });
-              await advance();
-            } catch (e) {
-              setError('Nepodařilo se uložit. Zkuste to znovu.');
-            }
+          onTimeUp={(n) => {
+            setViewed(n);
+            setView('timeup');
           }}
+          onDone={() => finishPriming(setError, pid, advance)}
         />
       )}
 
       {view === 'timeup' && (
-        <Card
-          title="Čas vypršel"
-          text="Čas na karty pojmů skončil. Pokračujte dál."
-          button="Pokračovat"
-          onNext={async () => {
-            setError('');
-            try {
-              await rpc('save_progress', { p_id: pid, p_step: 'priming_done' });
-              await advance();
-            } catch (e) {
-              setError('Nepodařilo se uložit. Zkuste to znovu.');
-            }
-          }}
+        <TimeUp
+          count={viewed}
+          nick={nick}
+          onNext={() => finishPriming(setError, pid, advance)}
         />
       )}
 
       {view === 'waiting' && (
-        <Waiting
-          mode={st?.mode}
-          onUnlock={() => advance()}
-        />
+        <Waiting mode={st?.mode} onCheck={() => advance()} nick={nick} />
+      )}
+
+      {view === 'postIntro' && (
+        <>
+          {bar('Výstupní test')}
+          <div class="stack grow">
+            <span class="eyebrow">Hra dokončena</span>
+            <h1>Poslední krok: výstupní test</h1>
+            <p>12 otázek, stejných jako na začátku. Odpovídej podle toho, co víš teď. Když si nejsi jistý(á), zvol Nevím.</p>
+          </div>
+          <button type="button" class="btn secondary" onClick={() => setView('post')}>Začít test</button>
+        </>
       )}
 
       {view === 'post' && (
-        <QuizScreen
+        <Quiz
           kind="post"
+          label="Výstupní test"
           questions={tests.post_test.questions}
+          nick={nick}
           onDone={async (answers) => {
             setError('');
             try {
@@ -199,117 +240,170 @@ function App() {
               await rpc('save_progress', { p_id: pid, p_step: 'post_done' });
               await advance();
             } catch (e) {
-              setError('Odpovědi se nepodařilo uložit. Zkuste to znovu.');
+              setError('Odpovědi se nepodařilo uložit. Zkus to znovu.');
             }
           }}
         />
       )}
 
       {view === 'done' && (
-        <Card
-          title="Hotovo"
-          text="Děkujeme za účast. Můžete zavřít stránku."
-        />
+        <div class="teal full">
+          <div class="center-col grow">
+            <img src="assets/logomark.svg" alt="" class="logomark-big" />
+            <h1 class="light">Hotovo, díky!</h1>
+            <p class="light-soft">Tvoje odpovědi jsou uložené. Můžeš zavřít stránku.</p>
+          </div>
+          <img src="assets/logotyp.svg" alt="Manydex" class="logotyp-small" />
+        </div>
       )}
     </main>
   );
 }
 
-// ---------- Úvod a obnova ----------
+async function finishPriming(setError, pid, advance) {
+  setError('');
+  try {
+    await rpc('save_progress', { p_id: pid, p_step: 'priming_done' });
+    await advance();
+  } catch (e) {
+    setError('Nepodařilo se uložit. Zkus to znovu.');
+  }
+}
 
-function Intro({ onStart, onRecover }) {
-  const [nick, setNick] = useState('');
+// ---------- Drobné komponenty ----------
+
+function Icon({ name }) {
+  const common = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' };
+  if (name === 'chart') return <svg {...common}><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6" /></svg>;
+  if (name === 'help') return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.5V14M12 17.5h.01" /></svg>;
+  if (name === 'eye') return <svg {...common}><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><path d="M4 4l16 16" /></svg>;
+  if (name === 'clock') return <svg {...common}><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M9 2h6" /></svg>;
+  if (name === 'back') return <svg {...common}><path d="M15 6l-6 6 6 6" /></svg>;
+  if (name === 'phone') return <svg {...common}><rect x="6" y="2" width="12" height="20" rx="2.5" /><path d="M11 18h2" /></svg>;
+  if (name === 'desk') return <svg {...common}><rect x="3" y="4" width="8" height="11" rx="1.5" /><rect x="13" y="9" width="8" height="11" rx="1.5" /></svg>;
+  return null;
+}
+
+function TopBar({ nick, label }) {
+  return (
+    <div class="topbar">
+      <div class="who"><span class="avatar">{initial(nick)}</span>{nick}</div>
+      <span class="tag">{label}</span>
+    </div>
+  );
+}
+
+// ---------- Úvod ----------
+
+function Main({ onStart }) {
+  return (
+    <div class="teal full">
+      <div class="center-col grow">
+        <img src="assets/logo.svg" alt="Manydex" class="logo-big" />
+        <p class="subtitle">Hra o pojmech z UX designu</p>
+        <p class="light-soft narrow">Na začátku si zvolíš přezdívku. Pod ní tě uvidí spoluhráči a propojí se tvoje testy.</p>
+      </div>
+      <div class="stack">
+        <button type="button" class="btn cream" onClick={onStart}>Start</button>
+        <p class="fine center light-soft">Data slouží jen pro diplomovou práci.</p>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Přezdívka a režim ----------
+
+function Mode({ onConfirm, onRecover }) {
+  const [name, setName] = useState('');
   const [mode, setMode] = useState('onsite');
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
 
   async function submit(ev) {
     ev.preventDefault();
-    if (!nick.trim() || busy) return;
+    if (!name.trim() || busy) return;
     setBusy(true);
-    setErr('');
-    try {
-      const id = await rpc('create_participant', { p_nickname: nick.trim(), p_mode: mode });
-      await onStart(id);
-    } catch (e) {
-      setErr('Něco se nepovedlo. Zkuste to znovu.');
-      setBusy(false);
-    }
+    await onConfirm(name.trim(), mode);
+    setBusy(false);
   }
 
   return (
-    <form onSubmit={submit}>
-      <h1>Vítejte v Manydexu</h1>
-      <p>Aplikace vás provede výukovou session krok za krokem. Nejdřív si zvolte přezdívku a způsob účasti.</p>
-
-      <label class="field">
-        <span>Přezdívka</span>
-        <input
-          type="text"
-          maxLength={40}
-          value={nick}
-          onInput={(e) => setNick(e.currentTarget.value)}
-          placeholder="Libovolná přezdívka"
-          autocomplete="off"
-        />
-        <small class="muted">Může být libovolná. Duplicity jsou povolené.</small>
-      </label>
-
-      <fieldset class="choice">
-        <legend>Jak se účastníte?</legend>
-        <label>
-          <input type="radio" name="mode" value="onsite" checked={mode === 'onsite'} onChange={() => setMode('onsite')} />
-          Jsem na místě
+    <form class="stack page" onSubmit={submit}>
+      <div class="stack gap-sm">
+        <h1>Jak ti máme říkat?</h1>
+        <label class="field">
+          <span class="field-label">Přezdívka</span>
+          <input
+            type="text"
+            maxLength={16}
+            value={name}
+            onInput={(e) => setName(e.currentTarget.value)}
+            placeholder="Např. Míša"
+            autocomplete="off"
+          />
         </label>
-        <label>
-          <input type="radio" name="mode" value="online" checked={mode === 'online'} onChange={() => setMode('online')} />
-          Jsem online (Teams)
-        </label>
-      </fieldset>
+        <p class="small muted">Uvidí ji spoluhráči ve hře. Může to být jméno i cokoli jiného.</p>
+      </div>
 
-      {err && <p class="error">{err}</p>}
+      <div class="stack gap-sm grow">
+        <h2>Kde dnes hraješ?</h2>
+        <ModeCard active={mode === 'onsite'} icon="desk" title="Na místě" text="Hraju u stolu s fyzickými kartami" onClick={() => setMode('onsite')} />
+        <ModeCard active={mode === 'online'} icon="phone" title="Online" text="Připojím se přes Teams a hraju v aplikaci" onClick={() => setMode('online')} />
+      </div>
 
-      <button type="submit" class="primary" disabled={busy || !nick.trim()}>
-        {busy ? 'Ukládám…' : 'Potvrdit'}
-      </button>
-      <p class="consent">
-        Potvrzením souhlasíte s použitím přezdívky a vašich odpovědí pro analýzu dat.
-      </p>
-
-      <p class="center">
-        <button type="button" class="link" onClick={onRecover}>
-          Už jsem tu byl/a. Obnovit účast
-        </button>
-      </p>
+      <div class="stack center-items">
+        <button type="submit" class="btn primary" disabled={!name.trim() || busy}>Potvrdit</button>
+        <p class="fine center muted">Pokračováním souhlasíš s použitím své přezdívky a odpovědí při analýze dat pro diplomovou práci.</p>
+        <button type="button" class="link" onClick={onRecover}>Stránka se mi zavřela – navázat</button>
+      </div>
     </form>
   );
 }
 
+function ModeCard({ active, icon, title, text, onClick }) {
+  return (
+    <button type="button" class={`mode-card ${active ? 'active' : ''}`} onClick={onClick} aria-pressed={active}>
+      <Icon name={icon} />
+      <span class="mode-text">
+        <span class="mode-title">{title}</span>
+        <span class="small muted">{text}</span>
+      </span>
+    </button>
+  );
+}
+
+// ---------- Obnova účasti ----------
+
 function Recover({ onPick, onBack }) {
   const [nick, setNick] = useState('');
   const [matches, setMatches] = useState(null);
+  const [picked, setPicked] = useState(null);
   const [err, setErr] = useState('');
 
   async function search(ev) {
     ev.preventDefault();
     setErr('');
+    setPicked(null);
     try {
       const rows = await rpc('find_participants', { p_nickname: nick.trim() });
       setMatches(rows || []);
     } catch (e) {
-      setErr('Hledání se nepovedlo. Zkuste to znovu.');
+      setErr('Hledání se nepovedlo. Zkus to znovu.');
     }
   }
 
   return (
-    <div>
-      <h1>Obnovit účast</h1>
-      <form onSubmit={search}>
+    <div class="stack page">
+      <div class="row">
+        <button type="button" class="icon-btn" aria-label="Zpět" onClick={onBack}><Icon name="back" /></button>
+        <h1 class="inline">Navázat na hru</h1>
+      </div>
+
+      <form class="stack gap-sm" onSubmit={search}>
         <label class="field">
-          <span>Vaše přezdívka</span>
-          <input type="text" maxLength={40} value={nick} onInput={(e) => setNick(e.currentTarget.value)} autocomplete="off" />
+          <span class="field-label">Tvoje přezdívka</span>
+          <input type="text" maxLength={16} value={nick} onInput={(e) => setNick(e.currentTarget.value)} autocomplete="off" />
         </label>
-        <button type="submit" class="primary" disabled={!nick.trim()}>Najít</button>
+        <button type="submit" class="btn secondary" disabled={!nick.trim()}>Najít</button>
       </form>
 
       {err && <p class="error">{err}</p>}
@@ -319,101 +413,109 @@ function Recover({ onPick, onBack }) {
       )}
 
       {matches && matches.length > 0 && (
-        <>
-          <p>Vyberte sebe:</p>
-          <ul class="list">
-            {matches.map((m) => (
-              <li key={m.id}>
-                <button type="button" class="option" onClick={() => onPick(m.id)}>
-                  {MODE_LABEL[m.mode]} · fáze: {progressLabel(m)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      <p class="center">
-        <button type="button" class="link" onClick={onBack}>Zpět</button>
-      </p>
-    </div>
-  );
-}
-
-// ---------- Obecná karta ----------
-
-function Card({ title, text, button, onNext }) {
-  const [busy, setBusy] = useState(false);
-  return (
-    <div class="card-screen">
-      <h1>{title}</h1>
-      <p>{text}</p>
-      {button && onNext && (
-        <button
-          type="button"
-          class="primary"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            await onNext();
-            setBusy(false);
-          }}
-        >
-          {button}
-        </button>
+        <div class="stack gap-sm grow">
+          <span class="small muted">Našli jsme {matches.length} {matches.length === 1 ? 'hráče' : 'hráče'} s touto přezdívkou. Který jsi ty?</span>
+          {matches.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              class={`match ${picked === m.id ? 'active' : ''}`}
+              onClick={() => setPicked(m.id)}
+              aria-pressed={picked === m.id}
+            >
+              <span class="avatar">{initial(nick)}</span>
+              <span class="stack gap-xs">
+                <span class="mode-title">{nick.trim()}</span>
+                <span class="small muted">{MODE_LABEL[m.mode]} · {progressLabel(m)}</span>
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            class="btn primary"
+            disabled={!picked}
+            onClick={() => onPick(picked, nick.trim())}
+          >
+            Pokračovat
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
-// ---------- Testy (pre i post) ----------
+// ---------- Testy (vstupní i výstupní) ----------
 
-function QuizScreen({ kind, questions, onDone }) {
+function Quiz({ kind, label, questions, nick, onDone }) {
   const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [saving, setSaving] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const q = questions[index];
-  const isPre = kind === 'pre';
-  const hint = isPre
-    ? 'Vyberte pojem, který odpovídá definici.'
-    : 'Vyberte definici, která odpovídá pojmu.';
+  const last = index === questions.length - 1;
+  const options = [...q.options, { key: UNKNOWN, text: 'Nevím / Neznám', unknown: true }];
+  const heading = kind === 'pre' ? 'Definice' : 'Pojem';
+  const question = kind === 'pre' ? 'Který pojem to je?' : 'Která definice je správná?';
+  const prompt = kind === 'pre' ? q.prompt : q.prompt;
 
-  async function choose(key) {
-    if (saving) return;
-    const next = { ...answers, [q.id]: key };
-    setAnswers(next);
-    if (index < questions.length - 1) {
+  async function next() {
+    if (!selected || busy) return;
+    const updated = { ...answers, [q.id]: selected };
+    if (!last) {
+      setAnswers(updated);
+      setSelected(null);
       setIndex(index + 1);
-    } else {
-      setSaving(true);
-      await onDone(next);
-      setSaving(false);
+      return;
     }
+    setBusy(true);
+    await onDone(updated);
+    setBusy(false);
   }
 
   return (
-    <div class="quiz">
-      <p class="muted">Otázka {index + 1} z {questions.length}</p>
-      <p class="hint">{hint}</p>
-      <h2 class="prompt">{q.prompt}</h2>
-      <ul class="list">
-        {q.options.map((opt) => (
-          <li key={opt.key}>
-            <button type="button" class="option" disabled={saving} onClick={() => choose(opt.key)}>
-              <strong>{opt.key}</strong> {opt.text}
-            </button>
-          </li>
+    <div class="stack page">
+      <TopBar nick={nick} label={label} />
+
+      <div class="stack gap-xs">
+        <div class="row between small strong">
+          <span>Otázka {index + 1} z {questions.length}</span>
+          <span>Bez nápověd</span>
+        </div>
+        <div class="progress"><div class="progress-fill" style={{ width: `${((index + 1) / questions.length) * 100}%` }} /></div>
+      </div>
+
+      <div class="question-card">
+        <span class="eyebrow small">{heading}</span>
+        <h1 class="prompt">{prompt}</h1>
+        <span class="small strong muted">{question}</span>
+      </div>
+
+      <div class="stack gap-sm grow">
+        {options.map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            class={`option ${selected === opt.key ? 'selected' : ''} ${opt.unknown ? 'unknown' : ''}`}
+            onClick={() => setSelected(opt.key)}
+            aria-pressed={selected === opt.key}
+          >
+            <span class="key">{opt.unknown ? '?' : opt.key}</span>
+            <span>{opt.text}</span>
+          </button>
         ))}
-      </ul>
-      {saving && <p class="muted">Ukládám…</p>}
+      </div>
+
+      <button type="button" class="btn primary" disabled={!selected || busy} onClick={next}>
+        {last ? 'Dokončit' : 'Další otázka'}
+      </button>
     </div>
   );
 }
 
-// ---------- Karty pojmů (priming) ----------
+// ---------- Karty pojmů ----------
 
-function Priming({ startedAt, onTimeUp, onDone }) {
+function Priming({ nick, startedAt, onTimeUp, onDone }) {
   const [index, setIndex] = useState(0);
   const [now, setNow] = useState(Date.now());
   const [saving, setSaving] = useState(false);
@@ -427,44 +529,57 @@ function Priming({ startedAt, onTimeUp, onDone }) {
   }, []);
 
   useEffect(() => {
-    if (left === 0) onTimeUp();
+    if (left === 0) onTimeUp(index + 1);
   }, [left === 0]);
 
   const card = terms[index];
   const last = index === terms.length - 1;
 
   return (
-    <div class="priming">
-      <div class="timer">Zbývá {formatTime(left)}</div>
-      <p class="muted">Karta {index + 1} z {terms.length}</p>
+    <div class="stack page">
+      <div class="topbar">
+        <div class="who"><span class="avatar">{initial(nick)}</span>{nick}</div>
+        <span class="timer"><Icon name="clock" />{formatTime(left)}</span>
+      </div>
 
-      <article
-        class="term-card"
-        onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
-        onTouchEnd={(e) => {
-          if (touchX === null) return;
-          const dx = e.changedTouches[0].clientX - touchX;
-          if (dx < -50 && index < terms.length - 1) setIndex(index + 1);
-          if (dx > 50 && index > 0) setIndex(index - 1);
-          setTouchX(null);
-        }}
-      >
-        <div class="term-code">{card.grid}</div>
-        <h2>{card.czName}</h2>
-        <p class="en">{card.enName}</p>
-        <p class="definition">{card.definition}</p>
-        <p class="example"><strong>Příklad:</strong> {card.example}</p>
-        <p class="meta">{card.field} · {card.type}</p>
-      </article>
+      <div class="row between baseline">
+        <h1 class="inline">Seznam se s pojmy</h1>
+        <span class="small strong muted">{index + 1} / {terms.length}</span>
+      </div>
 
-      <div class="nav">
-        <button type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>Zpět</button>
-        <button type="button" disabled={last} onClick={() => setIndex(index + 1)}>Další</button>
+      <div class="deck grow">
+        <div class="deck-edge" />
+        <article
+          class="term-card"
+          onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
+          onTouchEnd={(e) => {
+            if (touchX === null) return;
+            const dx = e.changedTouches[0].clientX - touchX;
+            if (dx < -50 && index < terms.length - 1) setIndex(index + 1);
+            if (dx > 50 && index > 0) setIndex(index - 1);
+            setTouchX(null);
+          }}
+        >
+          <div class="card-head">
+            <span class="term-code">{card.code}</span>
+            <img src="assets/logomark.svg" alt="" class="card-mark" />
+          </div>
+          <div class="illu">
+            <img src={`assets/${card.code}.svg`} alt={card.czName} />
+          </div>
+          <h2 class="term-name">{card.czName}</h2>
+          <p class="term-def">{card.definition}</p>
+        </article>
+      </div>
+
+      <div class="row gap-sm">
+        <button type="button" class="btn outline grow-1" disabled={index === 0} onClick={() => setIndex(index - 1)}>Zpět</button>
+        <button type="button" class="btn secondary grow-2" disabled={last} onClick={() => setIndex(index + 1)}>Další</button>
       </div>
 
       <button
         type="button"
-        class="primary"
+        class="link center"
         disabled={saving}
         onClick={async () => {
           setSaving(true);
@@ -472,32 +587,75 @@ function Priming({ startedAt, onTimeUp, onDone }) {
           setSaving(false);
         }}
       >
-        Mám hotovo
+        Mám hotovo, pokračovat
       </button>
     </div>
   );
 }
 
-// ---------- Čekání na odemknutí post-testu ----------
-
-function Waiting({ mode, onUnlock }) {
+function TimeUp({ count, nick, onNext }) {
   useEffect(() => {
-    const t = setInterval(async () => {
-      // Odemknutí dělá facilitátor; kontrolujeme stav na serveru
-      onUnlock();
-    }, POLL_MS);
-    return () => clearInterval(t);
+    const t = setTimeout(() => onNext(), 3000);
+    return () => clearTimeout(t);
   }, []);
 
   return (
-    <div class="card-screen">
-      <h1>Čekejte</h1>
-      {mode === 'online' ? (
-        <p>Budete rozděleni do skupin na Teams. Počkejte na pokyn facilitátora.</p>
+    <div class="teal full">
+      <div class="topbar light">
+        <div class="who light"><span class="avatar cream">{initial(nick)}</span>{nick}</div>
+        <span class="tag light-soft">Priming</span>
+      </div>
+      <div class="center-col grow">
+        <div class="ring"><Icon name="clock" /></div>
+        <h1 class="light">Čas vypršel</h1>
+        <p class="light-soft narrow">Prošel(a) jsi {count} z {terms.length} pojmů. Ostatní uvidíš během hry.</p>
+        <span class="small light-soft">Pokračujeme za 3 s…</span>
+      </div>
+      <button type="button" class="btn cream" onClick={onNext}>Pokračovat</button>
+    </div>
+  );
+}
+
+// ---------- Čekání na odemknutí výstupního testu ----------
+
+function Waiting({ mode, nick, onCheck }) {
+  useEffect(() => {
+    const t = setInterval(() => onCheck(), POLL_MS);
+    return () => clearInterval(t);
+  }, []);
+
+  const onsite = mode !== 'online';
+  return (
+    <div class="stack page">
+      <TopBar nick={nick} label={onsite ? 'Na místě' : 'Online'} />
+      {onsite ? (
+        <>
+          <div class="stack gap-xs">
+            <span class="eyebrow">Teď hrajete u stolu</span>
+            <h1>Hra u stolu</h1>
+          </div>
+          <ol class="steps">
+            <li><span class="step-num">1</span><span>Rozložte všechny karty <b>textem nahoru</b>: pojmy do jedné řady, definice do druhé.</span></li>
+            <li><span class="step-num">2</span><span>Po řadě vyberte pojem a definici. Otočte obě karty: shodný kód znamená pár. Chybný pár vraťte na stůl.</span></li>
+            <li><span class="step-num">3</span><span>Každý získá <b>3 páry</b>. Pak pokračujte podle facilitátora: Taboo, scénáře a obhajoba.</span></li>
+          </ol>
+          <div class="note">
+            <span class="dot" />
+            <span class="small">Telefon teď nepotřebuješ. Výstupní test se odemkne, až facilitátor ukončí hru.</span>
+          </div>
+        </>
       ) : (
-        <p>Dostanete instrukce k fyzické hře od facilitátora. Počkejte, až vás vyzve k post-testu.</p>
+        <>
+          <div class="stack gap-xs">
+            <span class="eyebrow">Teď hraješ online</span>
+            <h1>Čekej na skupinu</h1>
+          </div>
+          <div class="note">
+            <span class="dot" />
+            <span class="small">Budeš rozdělen(a) do skupin na Teams. Výstupní test se odemkne, až facilitátor ukončí hru.</span>
+          </div>
+        </>
       )}
-      <p class="muted">Tato stránka se sama obnoví, až bude post-test otevřený.</p>
     </div>
   );
 }

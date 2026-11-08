@@ -1,0 +1,30 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Wireframe: tužkou nakreslený půdorys bytu s obdélníky místo nábytku">
+<g transform="rotate(-3 300 275)">
+<rect x="119" y="118" width="380" height="330" rx="6" fill="#F7B538"></rect>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="110" y="110" width="380" height="330" rx="6"></rect>
+<rect x="150" y="150" width="300" height="250" stroke-width="5"></rect>
+<path d="M300 150 V260 M300 310 V400" stroke-width="5"></path>
+<path d="M300 310 H350" stroke-width="3"></path>
+<path d="M300 260 A50 50 0 0 1 350 310" stroke-width="2.5" stroke-dasharray="3 7"></path>
+<rect x="175" y="175" width="90" height="120" stroke-width="3"></rect>
+<path d="M175 175 L265 295 M265 175 L175 295" stroke="#DD4A35" stroke-width="2.5"></path>
+<rect x="360" y="185" width="60" height="60" stroke-width="3"></rect>
+<path d="M360 185 L420 245 M420 185 L360 245" stroke="#DD4A35" stroke-width="2.5"></path>
+<rect x="330" y="340" width="100" height="40" stroke-width="3"></rect>
+<path d="M330 340 L430 380 M430 340 L330 380" stroke="#DD4A35" stroke-width="2.5"></path>
+</g>
+</g>
+<g transform="translate(480 470) rotate(-40)">
+<rect x="5" y="-7" width="135" height="22" fill="#F7B538"></rect>
+<rect x="155" y="-7" width="22" height="22" rx="3" fill="#DD4A35"></rect>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="0" y="-11" width="140" height="22"></rect>
+<rect x="140" y="-11" width="10" height="22"></rect>
+<rect x="150" y="-11" width="22" height="22" rx="3"></rect>
+<path d="M0 -11 L-30 0 L0 11"></path>
+<path d="M4 0 H136" stroke-width="2.5"></path>
+</g>
+<path d="M-20 -3.7 L-30 0 L-20 3.7 Z" fill="#22302F"></path>
+</g>
+</svg>

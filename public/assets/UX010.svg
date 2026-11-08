@@ -1,0 +1,29 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Persona: připíchnutá karta fiktivního návštěvníka festivalu, který jezdí vlakem a stanuje">
+<g transform="translate(9 8)" fill="#F7B538">
+<rect x="130" y="130" width="370" height="320" rx="10"></rect>
+</g>
+<circle cx="220" cy="225" r="58" fill="#FBF9F5"></circle>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="130" y="130" width="370" height="320" rx="10"></rect>
+<circle cx="220" cy="225" r="58" stroke-dasharray="8 9"></circle>
+<circle cx="220" cy="207" r="20"></circle>
+<path d="M186 262 C190 238 250 238 254 262"></path>
+<path d="M300 196 H440" stroke-width="6"></path>
+<path d="M300 222 H350" stroke-width="4"></path>
+<path d="M300 254 H460 M300 274 H430" stroke="#A39A8F" stroke-width="4"></path>
+<rect x="196" y="334" width="48" height="44" rx="10"></rect>
+<rect x="204" y="342" width="32" height="14" rx="3" stroke-width="3"></rect>
+<circle cx="208" cy="386" r="4" stroke-width="3"></circle>
+<circle cx="232" cy="386" r="4" stroke-width="3"></circle>
+<path d="M188 396 H252" stroke-width="3"></path>
+<path d="M281 394 L315 332 L349 394 Z"></path>
+<path d="M303 394 L315 368 L327 394" stroke-width="3"></path>
+<path d="M273 396 H357" stroke-width="3"></path>
+<rect x="390" y="338" width="40" height="56" rx="12"></rect>
+<rect x="398" y="366" width="24" height="18" rx="5" stroke-width="3"></rect>
+<path d="M402 338 C402 324 418 324 418 338" stroke-width="3"></path>
+</g>
+<circle cx="320" cy="132" r="13" fill="#DD4A35"></circle>
+<circle cx="315" cy="128" r="13" fill="none" stroke="#22302F" stroke-width="3.5"></circle>
+<circle cx="311" cy="124" r="3" fill="#FBF9F5"></circle>
+</svg>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Mentální model: člověk si myslí, že termostat na maximu topí víc, ale radiátor hřeje pořád stejně">
+<g transform="translate(10 8)" fill="#F7B538">
+<path transform="translate(30 210) scale(0.62)" d="M140 540 C160 496 200 480 222 470 C220 440 206 420 200 380 C185 290 210 185 300 172 C360 164 395 205 394 262 L420 302 C424 308 418 313 410 314 L398 316 C402 326 400 334 396 340 C400 348 396 360 388 366 C384 384 368 392 345 392 L340 470 C372 478 430 492 460 540"></path>
+<circle cx="470" cy="200" r="52"></circle>
+<rect x="400" y="320" width="150" height="110" rx="10"></rect>
+</g>
+<rect x="160" y="100" width="210" height="140" rx="60" fill="#FBF9F5"></rect>
+<g transform="translate(5 4)" fill="#DD4A35">
+<path d="M215 140 C241 176 245 200 215 220 C185 200 189 176 215 140 Z"></path>
+<path d="M265 120 C291 165 295 195 265 220 C235 195 239 165 265 120 Z"></path>
+<path d="M315 140 C341 176 345 200 315 220 C285 200 289 176 315 140 Z"></path>
+</g>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<path transform="translate(30 210) scale(0.62)" stroke-width="5.65" d="M140 540 C160 496 200 480 222 470 C220 440 206 420 200 380 C185 290 210 185 300 172 C360 164 395 205 394 262 L420 302 C424 308 418 313 410 314 L398 316 C402 326 400 334 396 340 C400 348 396 360 388 366 C384 384 368 392 345 392 L340 470 C372 478 430 492 460 540"></path>
+<circle cx="232" cy="296" r="6"></circle>
+<circle cx="250" cy="270" r="9"></circle>
+<rect x="160" y="100" width="210" height="140" rx="60"></rect>
+<path d="M215 140 C241 176 245 200 215 220 C185 200 189 176 215 140 Z"></path>
+<path d="M265 120 C291 165 295 195 265 220 C235 195 239 165 265 120 Z"></path>
+<path d="M315 140 C341 176 345 200 315 220 C285 200 289 176 315 140 Z"></path>
+<circle cx="470" cy="200" r="52"></circle>
+<circle cx="470" cy="200" r="30"></circle>
+<path d="M443.1 226.9 L437.5 232.5 M434.9 185.5 L427.5 182.4 M470 162 V154 M505.1 185.5 L512.5 182.4" stroke-width="3"></path>
+<path d="M360 444 H590"></path>
+<rect x="400" y="320" width="150" height="110" rx="10"></rect>
+<path d="M425 336 V414 M450 336 V414 M475 336 V414 M500 336 V414 M525 336 V414" stroke-width="3"></path>
+<path d="M414 430 V444 M536 430 V444"></path>
+<path d="M440 306 c-6 -8 6 -14 0 -22 c-6 -8 6 -14 0 -22 M475 306 c-6 -8 6 -14 0 -22 c-6 -8 6 -14 0 -22 M510 306 c-6 -8 6 -14 0 -22 c-6 -8 6 -14 0 -22" stroke-width="3"></path>
+</g>
+<path d="M496.9 226.9 L502.5 232.5 M470 200 L487 217" fill="none" stroke="#DD4A35" stroke-width="6" stroke-linecap="round"></path>
+</svg>

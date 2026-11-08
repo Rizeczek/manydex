@@ -1,11 +1,18 @@
 :root {
   --teal: #1b4f57;
+  --teal-soft: #e3edec;
+  --teal-mid: #24606a;
   --cream: #ece4d4;
+  --cream-text: #ede3d2;
   --bg: #f3ecdf;
+  --card: #ffffff;
   --dark: #0a2629;
+  --ink: #0f2528;
   --yellow: #fdbe1e;
+  --line: #e0d7c7;
+  --line-dash: #b5ab9a;
+  --muted: #4a5a5c;
   --red: #b3261e;
-  --muted: #5d6b6d;
   color-scheme: light;
 }
 
@@ -14,155 +21,257 @@
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--dark);
+  color: var(--ink);
   font-family: 'Figtree', system-ui, sans-serif;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2 {
   font-family: 'Urbanist', system-ui, sans-serif;
-  color: var(--teal);
-  line-height: 1.2;
+  color: var(--ink);
+  line-height: 1.15;
+  margin: 0;
 }
-h1 { font-size: 1.9rem; margin: 0 0 0.6rem; }
-h2 { font-size: 1.4rem; margin: 0.3rem 0 0.5rem; }
+h1 { font-size: 30px; font-weight: 800; }
+h2 { font-size: 22px; font-weight: 700; }
+p { margin: 0; }
+button, input { font: inherit; }
+button { cursor: pointer; }
 
-.screen {
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 24px 18px 48px;
+/* ----- Rozvržení ----- */
+
+.app {
+  max-width: 430px;
   min-height: 100vh;
+  margin: 0 auto;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
-.muted { color: var(--muted); font-size: 0.92rem; }
+.page {
+  flex: 1;
+  padding: 20px 20px 28px;
+  gap: 20px;
+}
+
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.gap-sm { gap: 12px; }
+.gap-xs { gap: 4px; }
+.row { display: flex; align-items: center; gap: 8px; }
+.between { justify-content: space-between; }
+.baseline { align-items: baseline; }
+.grow { flex-grow: 1; }
+.grow-1 { flex: 1 1 0; }
+.grow-2 { flex: 2 1 0; }
 .center { text-align: center; }
-.error { color: var(--red); font-weight: 600; }
-
-.field { display: block; margin: 16px 0; }
-.field span { display: block; font-weight: 600; margin-bottom: 6px; }
-.field small { display: block; margin-top: 4px; }
-
-input[type='text'] {
-  width: 100%;
-  padding: 12px 14px;
-  font: inherit;
-  border: 2px solid var(--teal);
-  border-radius: 10px;
-  background: #fff;
+.center-items { align-items: center; }
+.center-col {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: 24px; text-align: center; padding: 24px;
 }
+.narrow { max-width: 300px; margin: 0 auto; }
+.inline { display: inline; }
+.pad { padding: 24px; }
 
-.choice {
-  border: none;
-  padding: 0;
-  margin: 18px 0;
+.teal { background: var(--teal); color: var(--cream-text); }
+.full { min-height: 100vh; padding: 24px 24px 28px; display: flex; flex-direction: column; gap: 24px; }
+
+.light { color: #ffffff; }
+.light-soft { color: #d8cfbf; }
+.teal .light-soft { color: #d8e2e0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.fine { font-size: 12px; line-height: 1.5; }
+.strong { font-weight: 600; }
+.eyebrow {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--teal);
 }
-.choice legend { font-weight: 600; margin-bottom: 8px; }
-.choice label { display: block; padding: 6px 0; cursor: pointer; }
+.error { color: var(--red); font-weight: 600; padding: 0 20px; }
 
-button {
-  font: inherit;
-  cursor: pointer;
+/* ----- Tlačítka a pole ----- */
+
+.btn {
+  height: 56px; width: 100%;
+  border-radius: 16px; border: 0;
+  font-family: 'Urbanist', sans-serif; font-size: 19px; font-weight: 700;
 }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--teal); color: var(--cream); }
+.btn.secondary { background: var(--teal); color: var(--cream-text); font-size: 18px; font-weight: 600; }
+.btn.cream { background: var(--cream); color: var(--dark); }
+.btn.outline { background: transparent; color: var(--teal); border: 2px solid var(--teal); font-size: 18px; }
 
-button.primary {
-  display: block;
-  width: 100%;
-  margin-top: 12px;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  background: var(--teal);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-button.primary:disabled { opacity: 0.5; cursor: default; }
-
-button.link {
-  background: none;
-  border: none;
-  color: var(--teal);
+.link {
+  background: none; border: 0; color: var(--teal);
+  font-size: 14px; font-weight: 600; min-height: 44px; padding: 0 8px;
   text-decoration: underline;
-  padding: 8px;
+}
+.teal .link { color: var(--cream); }
+.link:disabled { opacity: 0.5; }
+
+.icon-btn {
+  width: 44px; height: 44px; border: 0; background: transparent; color: var(--ink);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
-button.option {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 14px 16px;
-  margin: 10px 0;
-  border: 2px solid var(--teal);
-  border-radius: 12px;
-  background: #fff;
-  color: var(--dark);
-}
-button.option:active { background: var(--cream); }
-button.option:disabled { opacity: 0.5; }
-
-.list { list-style: none; padding: 0; margin: 0; }
-
-.consent {
-  margin-top: 14px;
-  font-size: 0.85rem;
-  color: var(--muted);
-  text-align: center;
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+input[type='text'] {
+  width: 100%; height: 60px; padding: 0 18px;
+  border-radius: 16px; border: 2px solid var(--teal); background: #fff;
+  font-family: 'Urbanist', sans-serif; font-size: 22px; font-weight: 700; color: var(--ink);
 }
 
-.hint { color: var(--teal); font-weight: 600; margin: 8px 0 0; }
-.prompt { margin: 12px 0 4px; }
+/* ----- Horní lišta ----- */
 
-.card-screen { padding-top: 24px; }
-.card-screen p { margin: 0 0 14px; }
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  height: 44px; margin: 0 0 4px;
+}
+.topbar.light { margin: 0; }
+.who {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 600; font-size: 15px;
+}
+.who.light { color: var(--cream-text); }
+.avatar {
+  width: 32px; height: 32px; border-radius: 16px;
+  background: var(--teal); color: var(--cream-text);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Urbanist', sans-serif; font-weight: 700; font-size: 15px; flex-shrink: 0;
+}
+.avatar.cream { background: var(--cream); color: var(--teal); }
+.tag { font-size: 13px; font-weight: 600; color: var(--muted); }
 
 .timer {
-  position: sticky;
-  top: 0;
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--yellow);
-  font-weight: 700;
-  color: var(--dark);
+  display: flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 14px; border-radius: 18px;
+  background: var(--dark); color: #f3ecdf;
+  font-family: 'Urbanist', sans-serif; font-size: 17px; font-weight: 700;
 }
+.timer svg { color: var(--yellow); }
 
+/* ----- Úvod ----- */
+
+.logo-big { width: 236px; height: auto; }
+.subtitle {
+  font-family: 'Urbanist', sans-serif; font-size: 22px; font-weight: 600; color: var(--cream-text);
+}
+.logomark-big { width: 96px; height: 96px; }
+.logotyp-small { align-self: center; width: 120px; height: auto; opacity: 0.7; }
+
+/* ----- Režim ----- */
+
+.mode-card {
+  display: flex; align-items: center; gap: 16px; text-align: left;
+  padding: 18px; border-radius: 16px; border: 2px solid var(--line);
+  background: var(--card); color: var(--ink);
+}
+.mode-card.active { border-color: var(--teal); background: var(--teal-soft); }
+.mode-card svg { color: var(--teal); flex-shrink: 0; }
+.mode-text { display: flex; flex-direction: column; gap: 4px; }
+.mode-title { font-family: 'Urbanist', sans-serif; font-size: 19px; font-weight: 700; color: var(--ink); }
+
+/* ----- Obnova ----- */
+
+.match {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  padding: 14px 16px; border-radius: 16px; border: 2px solid var(--line);
+  background: var(--card); color: var(--ink);
+}
+.match.active { border-color: var(--teal); background: var(--teal-soft); }
+
+/* ----- Testy ----- */
+
+.progress { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.progress-fill { height: 6px; border-radius: 3px; background: var(--teal); }
+
+.question-card {
+  background: var(--card); border-radius: 20px; padding: 22px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.question-card.teal-card { background: var(--teal); color: var(--cream-text); }
+.prompt { font-family: 'Urbanist', sans-serif; font-size: 21px; font-weight: 600; line-height: 1.35; }
+
+.option {
+  display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 0 16px;
+  border-radius: 14px; border: 2px solid var(--line); background: var(--card);
+  color: var(--ink); font-size: 16px; font-weight: 500; text-align: left;
+}
+.option .key {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg); display: flex; align-items: center; justify-content: center;
+  font-family: 'Urbanist', sans-serif; font-weight: 700; font-size: 14px;
+}
+.option.selected { border-color: var(--teal); background: var(--teal-soft); font-weight: 600; }
+.option.selected .key { background: var(--teal); color: var(--cream-text); }
+.option.unknown {
+  border-style: dashed; border-color: var(--line-dash); background: transparent; color: var(--muted);
+}
+.option.unknown .key { border: 1.5px solid var(--line-dash); background: transparent; }
+
+/* ----- Karty pojmů ----- */
+
+.deck { position: relative; display: flex; flex-direction: column; padding-top: 6px; }
+.deck-edge {
+  height: 10px; margin: 0 14px; border-radius: 18px 18px 0 0; background: #6e9295;
+}
 .term-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 22px 20px;
-  margin: 14px 0;
-  box-shadow: 0 2px 10px rgba(10, 38, 41, 0.08);
-  min-height: 280px;
+  flex-grow: 1; border-radius: 22px; background: var(--teal); color: var(--cream-text);
+  padding: 18px 18px 22px; display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 12px 28px rgba(10, 38, 41, 0.22);
   touch-action: pan-y;
 }
+.card-head { display: flex; justify-content: space-between; align-items: center; }
 .term-code {
-  display: inline-block;
-  font-family: 'Urbanist', sans-serif;
-  font-weight: 700;
-  color: var(--teal);
-  background: var(--cream);
-  padding: 2px 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
+  font-family: 'Urbanist', sans-serif; font-size: 13px; font-weight: 700;
+  letter-spacing: 0.8px; color: #b9cfcc;
 }
-.term-card .en { color: var(--muted); margin: 0 0 12px; }
-.term-card .definition { font-size: 1.05rem; }
-.term-card .example { color: var(--dark); opacity: 0.85; }
-.term-card .meta { color: var(--muted); font-size: 0.85rem; margin-top: 14px; }
+.card-mark { width: 28px; height: 28px; }
+.illu {
+  border-radius: 16px; background: #fbf9f5; padding: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.illu img { width: 100%; height: auto; display: block; }
+.term-name { color: var(--cream-text); font-size: 30px; font-weight: 800; }
+.term-def { font-size: 17px; line-height: 1.5; color: var(--cream-text); }
 
-.nav {
-  display: flex;
-  gap: 10px;
+/* ----- Čas vypršel ----- */
+
+.ring {
+  width: 112px; height: 112px; border-radius: 56px; background: #24606a;
+  display: flex; align-items: center; justify-content: center;
 }
-.nav button {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid var(--teal);
-  border-radius: 12px;
-  background: transparent;
-  color: var(--teal);
-  font-weight: 600;
+.ring svg { color: var(--yellow); width: 56px; height: 56px; }
+
+/* ----- Hra u stolu ----- */
+
+.steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; flex-grow: 1; }
+.steps li {
+  display: flex; gap: 14px; background: var(--card); border-radius: 16px; padding: 16px;
+  font-size: 15px; line-height: 1.5;
 }
-.nav button:disabled { opacity: 0.4; }
+.step-num {
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
+  background: var(--teal); color: var(--cream-text);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Urbanist', sans-serif; font-weight: 600;
+}
+
+.note {
+  display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 16px;
+  background: var(--teal); color: var(--cream-text);
+}
+.note .dot { flex-shrink: 0; width: 12px; height: 12px; border-radius: 6px; background: #fbbf24; }
+
+.tips { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.tips li {
+  display: flex; gap: 14px; align-items: flex-start; padding: 16px;
+  border-radius: 16px; background: var(--card); font-size: 15px; line-height: 1.5;
+}
+.tips svg { color: var(--teal); flex-shrink: 0; }

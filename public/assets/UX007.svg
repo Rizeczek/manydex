@@ -1,0 +1,35 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Testování použitelnosti: účastník se zasekne u druhého kroku návodu a pozorovatel si to zapisuje">
+<g transform="translate(8 7)" fill="#F7B538">
+<rect x="80" y="300" width="54" height="130" rx="27"></rect>
+<rect x="190" y="190" width="230" height="170" rx="6"></rect>
+<rect x="480" y="300" width="54" height="130" rx="27"></rect>
+</g>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M60 430 H570"></path>
+<rect x="80" y="300" width="54" height="130" rx="27"></rect>
+<circle cx="107" cy="272" r="22"></circle>
+<path d="M240 360 L226 430 M370 360 L384 430"></path>
+<rect x="190" y="190" width="230" height="170" rx="6"></rect>
+<rect x="204" y="214" width="62" height="62" rx="4" stroke-width="3"></rect>
+<rect x="274" y="214" width="62" height="62" rx="4" stroke-width="3"></rect>
+<rect x="344" y="214" width="62" height="62" rx="4" stroke-width="3"></rect>
+<rect x="216" y="240" width="38" height="10" rx="2" stroke-width="3"></rect>
+<path d="M288 228 h10 v26 h26 v10 h-36 Z" stroke-width="3"></path>
+<rect x="356" y="230" width="38" height="34" rx="2" stroke-width="3"></rect>
+<path d="M356 247 H394" stroke-width="3"></path>
+<path d="M204 304 H404 M204 326 H350" stroke="#A39A8F" stroke-width="4"></path>
+<rect x="480" y="300" width="54" height="130" rx="27"></rect>
+<circle cx="507" cy="272" r="22"></circle>
+</g>
+<rect x="456" y="330" width="40" height="54" rx="4" fill="#FBF9F5" stroke="#22302F" stroke-width="3.5"></rect>
+<g fill="none" stroke="#22302F" stroke-width="3" stroke-linecap="round">
+<rect x="468" y="324" width="16" height="10" rx="2" fill="#FBF9F5"></rect>
+<path d="M464 348 H488 M464 360 H484 M464 372 H488"></path>
+<path d="M484 262 Q420 226 352 234" stroke-dasharray="2 10"></path>
+</g>
+<g fill="none" stroke="#DD4A35" stroke-width="4.5" stroke-linecap="round">
+<path d="M266 238 C270 204 342 200 346 232 C350 266 316 288 284 278 C260 270 260 244 286 224"></path>
+<path d="M97 202 C97 188 117 188 117 202 C117 212 107 213 107 226"></path>
+</g>
+<circle cx="107" cy="239" r="3.5" fill="#DD4A35"></circle>
+</svg>

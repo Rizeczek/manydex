@@ -1,0 +1,26 @@
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="628" height="584" viewBox="0 0 628 584" role="img" aria-label="Hickův zákon: dlouhý jídelní lístek s dlouhým časem rozhodování a krátký lístek s krátkým">
+<g transform="translate(8 7)" fill="#F7B538">
+<rect x="110" y="140" width="160" height="320" rx="10"></rect>
+<rect x="360" y="270" width="160" height="130" rx="10"></rect>
+</g>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="110" y="140" width="160" height="320" rx="10"></rect>
+<path d="M130 166 H190" stroke-width="5"></path>
+<path d="M130 196 H242 M130 216 H220 M130 236 H248 M130 256 H210 M130 276 H236 M130 296 H224 M130 316 H246 M130 336 H206 M130 356 H238 M130 376 H218 M130 396 H244 M130 416 H214 M130 436 H230" stroke-width="3"></path>
+<rect x="360" y="270" width="160" height="130" rx="10"></rect>
+<path d="M380 296 H440" stroke-width="5"></path>
+<path d="M380 326 H490 M380 350 H468 M380 374 H482" stroke-width="3"></path>
+</g>
+<circle cx="262" cy="142" r="34" fill="#FBF9F5"></circle>
+<path d="M262 142 L262 116 A26 26 0 1 1 236 142 Z" fill="#DD4A35"></path>
+<circle cx="512" cy="272" r="28" fill="#FBF9F5"></circle>
+<path d="M512 272 L512 250 A22 22 0 0 1 527.6 256.4 Z" fill="#DD4A35"></path>
+<g fill="none" stroke="#22302F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="262" cy="142" r="34"></circle>
+<rect x="255" y="98" width="14" height="10" rx="2"></rect>
+<path d="M262 142 L236 142"></path>
+<circle cx="512" cy="272" r="28"></circle>
+<rect x="506" y="234" width="12" height="9" rx="2"></rect>
+<path d="M512 272 L527.6 256.4"></path>
+</g>
+</svg>
