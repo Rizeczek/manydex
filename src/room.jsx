@@ -6,9 +6,11 @@ import { rpc } from './api.js';
 // Stav se načítá z databáze každé 2 s (get_room_state); akce jsou samostatné funkce v databázi.
 
 const POLL_MS = 2000;
+const CLOCK_MS = 100;
 const UNLOCK_POLL_MS = 8000;
 const RESULT_MS = 3500;
 const COUNTDOWN_MS = 5000;
+const SHEET_CLOSE_MS = 260;
 const PAIRS_PER_PLAYER = 3;
 
 const termByCode = Object.fromEntries(terms.map((t) => [t.code, t]));
@@ -78,6 +80,8 @@ export default function Room({ pid, nick, onCheck }) {
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const shown = useRef({ init: false, key: null, at: 0 });
+  const [sheetTerm, setSheetTerm] = useState(null);
+  const [sheetClosing, setSheetClosing] = useState(false);
 
   async function load() {
     try {
@@ -92,7 +96,7 @@ export default function Room({ pid, nick, onCheck }) {
   useEffect(() => {
     load();
     const poll = setInterval(load, POLL_MS);
-    const clock = setInterval(() => setNow(Date.now()), 250);
+    const clock = setInterval(() => setNow(Date.now()), CLOCK_MS);
     return () => {
       clearInterval(poll);
       clearInterval(clock);
@@ -101,6 +105,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   const room = data?.room || null;
   const finished = room?.status === 'pairing_done';
+  const selTerm = room?.state?.sel_term ?? null;
 
   // Po skončení hry čekáme, až facilitátor odemkne výstupní test
   useEffect(() => {
@@ -108,6 +113,24 @@ export default function Room({ pid, nick, onCheck }) {
     const t = setInterval(() => onCheck(), UNLOCK_POLL_MS);
     return () => clearInterval(t);
   }, [finished]);
+
+  // Panel s definicemi: při výběru vyjede, po zrušení se zavře (drží obsah, dokud se animace nedoběhne)
+  useEffect(() => {
+    if (selTerm) {
+      setSheetTerm(selTerm);
+      setSheetClosing(false);
+      return undefined;
+    }
+    if (sheetTerm) {
+      setSheetClosing(true);
+      const t = setTimeout(() => {
+        setSheetTerm(null);
+        setSheetClosing(false);
+      }, SHEET_CLOSE_MS);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [selTerm]);
 
   async function act(fn, args = {}) {
     if (busy) return;
@@ -144,7 +167,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (!data) {
     return (
-      <Shell nick={nick} label="Online">
+      <Shell key="loading" nick={nick} label="Online">
         <p class="muted">Připojování…</p>
       </Shell>
     );
@@ -159,7 +182,7 @@ export default function Room({ pid, nick, onCheck }) {
   // 1) Ještě nejsi v místnosti: zadání čísla
   if (!room) {
     return (
-      <Shell nick={nick} label="Online">
+      <Shell key="join" nick={nick} label="Online">
         {offlineBanner}
         <div class="stack grow room-enter">
           <div class="room-intro">
@@ -197,6 +220,7 @@ export default function Room({ pid, nick, onCheck }) {
       const left = Math.max(0, room.countdown_ms - (now - data.fetchedAt));
       return (
         <Countdown
+          key="countdown"
           nick={nick}
           code={room.code}
           players={players}
@@ -209,7 +233,7 @@ export default function Room({ pid, nick, onCheck }) {
     }
     const readyCount = players.filter((p) => p.ready).length;
     return (
-      <Shell nick={nick} label={`Místnost ${room.code}`}>
+      <Shell key="lobby" nick={nick} label={`Místnost ${room.code}`}>
         {offlineBanner}
         <div class="stack grow">
           <div class="stack gap-xs">
@@ -247,10 +271,10 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 3) Hra skončila (zatím konec části B1; Taboo a další části přijdou později)
+  // 3) Hra skončila (konec části B1; Taboo a další části přijdou později)
   if (finished) {
     return (
-      <Shell nick={nick} label={`Místnost ${room.code}`}>
+      <Shell key="finished" nick={nick} label={`Místnost ${room.code}`}>
         <div class="stack grow">
           <div class="stack gap-xs">
             <span class="eyebrow">Párování hotové</span>
@@ -262,7 +286,7 @@ export default function Room({ pid, nick, onCheck }) {
               <div class="room-player" key={p.seat}>
                 <span class="room-name">{p.nickname}</span>
                 <span class="room-dots">
-                  {[0, 1, 2].map((i) => <span class={`room-dot${i < p.matched ? ' on' : ''}`} />)}
+                  {[0, 1, 2].map((i) => <span class={`room-dot${i < p.matched ? ' on' : ''}`} key={i} />)}
                 </span>
               </div>
             ))}
@@ -278,7 +302,6 @@ export default function Room({ pid, nick, onCheck }) {
 
   // 4) Párování
   const myMatched = me?.matched ?? 0;
-  const total = st.terms.length + st.matched.length;
   const myPairs = st.matched.filter((m) => m.seat === meSeat);
   const turnSeat = st.turn_seat;
   const isMyTurn = turnSeat === meSeat;
@@ -302,7 +325,7 @@ export default function Room({ pid, nick, onCheck }) {
           <div class={`room-player${p.seat === turnSeat ? ' turn' : ''}${p.connected ? '' : ' off'}`} key={p.seat}>
             <span class="room-name">{p.me ? `${p.nickname} (ty)` : p.nickname}</span>
             <span class="room-dots">
-              {[0, 1, 2].map((i) => <span class={`room-dot${i < p.matched ? ' on' : ''}`} />)}
+              {[0, 1, 2].map((i) => <span class={`room-dot${i < p.matched ? ' on' : ''}`} key={i} />)}
             </span>
           </div>
         ))}
@@ -315,7 +338,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (showResult) {
     return (
-      <Shell nick={nick} label="Kontrola páru">
+      <Shell key="result" nick={nick} label="Kontrola páru">
         <ResultView last={last} players={players} st={st} />
       </Shell>
     );
@@ -323,7 +346,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (myMatched >= PAIRS_PER_PLAYER) {
     return (
-      <Shell nick={nick} label={`Místnost ${room.code}`}>
+      <Shell key="pairdone" nick={nick} label={`Místnost ${room.code}`}>
         {offlineBanner}
         <div class="stack grow">
           <div class="stack gap-xs">
@@ -346,7 +369,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (!isMyTurn) {
     return (
-      <Shell nick={nick} label={`Místnost ${room.code}`}>
+      <Shell key="watch" nick={nick} label={`Místnost ${room.code}`}>
         {offlineBanner}
         {boardHeader}
         <div class="room-banner dark">
@@ -371,12 +394,14 @@ export default function Room({ pid, nick, onCheck }) {
   }
 
   // Můj tah
+  const sheetOpen = !!selTerm;
+  const sheetShown = selTerm || sheetTerm;
   return (
-    <Shell nick={nick} label={`Místnost ${room.code}`}>
+    <Shell key="turn" nick={nick} label={`Místnost ${room.code}`}>
       {offlineBanner}
       {boardHeader}
       <div class="room-banner">
-        <span class="room-arrow">{<Icon name="arrow" />}</span>
+        <span class="room-arrow"><Icon name="arrow" /></span>
         <span class="stack gap-xs">
           <span class="room-banner-title">Tvůj tah</span>
           <span class="small">Vyber pojem, pak k němu definici.</span>
@@ -398,16 +423,16 @@ export default function Room({ pid, nick, onCheck }) {
       {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
       <p class="room-hint">Ostatní vidí tvůj výběr živě. Domlouvejte se na Teams.</p>
 
-      {st.sel_term && (
-        <div class="room-sheet-wrap">
+      {sheetShown && (
+        <div class={`room-sheet-wrap${sheetOpen ? '' : ' closing'}`}>
           <div class="room-sheet" role="dialog" aria-label="Výběr definice">
             <span class="room-grip" />
             <div class="room-sheet-head">
               <span class="stack gap-xs">
                 <span class="room-eyebrow">Vybraný pojem</span>
-                <span class="room-term">{termByCode[st.sel_term].czName}</span>
+                <span class="room-term">{termByCode[sheetShown].czName}</span>
               </span>
-              <button type="button" class="room-x" aria-label="Zrušit výběr" disabled={busy} onClick={() => act('clear_selection')}>
+              <button type="button" class="room-x" aria-label="Zrušit výběr" disabled={busy || !sheetOpen} onClick={() => act('clear_selection')}>
                 <Icon name="close" />
               </button>
             </div>
@@ -418,7 +443,7 @@ export default function Room({ pid, nick, onCheck }) {
                   type="button"
                   class={`room-def${st.sel_def === code ? ' on' : ''}`}
                   key={code}
-                  disabled={busy}
+                  disabled={busy || !sheetOpen}
                   onClick={() => act('pick_definition', { p_def: code })}
                 >
                   {termByCode[code].definition}
@@ -454,9 +479,19 @@ function Countdown({ nick, code, players, left, busy, onCancel, error }) {
         <p class="light-soft">Všichni jsou připraveni</p>
         <div class="room-ring">
           <svg width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
-            <circle cx="100" cy="100" r="95" fill="none" stroke="#FDBE1E" stroke-width="10" stroke-linecap="round" stroke-dasharray={`${dash} 597`} transform="rotate(-90 100 100)" />
+            <circle
+              cx="100"
+              cy="100"
+              r="95"
+              fill="none"
+              stroke="#FDBE1E"
+              stroke-width="10"
+              stroke-linecap="round"
+              style={{ strokeDasharray: `${dash} 597`, transition: 'stroke-dasharray 0.12s linear' }}
+              transform="rotate(-90 100 100)"
+            />
           </svg>
-          <span>{secs}</span>
+          <span key={secs} class="room-count-num">{secs}</span>
         </div>
         <h1 class="light">Hra začíná</h1>
         <div class="room-chips">
@@ -476,6 +511,7 @@ function ResultView({ last, players, st }) {
   const next = players.find((p) => p.seat === st.turn_seat);
   const term = termByCode[last.term];
   const def = termByCode[last.def];
+  const total = Math.max(1, st.matched.length + st.terms.length);
   return (
     <div class="stack grow room-result">
       <div class="room-cards">
@@ -507,7 +543,7 @@ function ResultView({ last, players, st }) {
         </p>
       </div>
       <div class="stack gap-xs">
-        <div class="room-progress"><span style={{ width: `${(st.matched.length / Math.max(1, st.matched.length + st.terms.length)) * 100}%` }} /></div>
+        <div class="room-progress"><span style={{ width: `${(st.matched.length / total) * 100}%` }} /></div>
         <p class="room-hint">{next ? `Za chvíli hraje ${next.nickname}.` : 'Hra ve skupině je u konce.'}</p>
       </div>
     </div>

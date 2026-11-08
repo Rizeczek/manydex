@@ -519,3 +519,44 @@ input[type='text'] {
 .room-pair .d { font-size: 14px; line-height: 1.45; color: #d8e2e0; }
 .room-note { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; background: var(--card); }
 .room-note .dot { flex-shrink: 0; width: 12px; height: 12px; border-radius: 6px; background: #fbbf24; }
+
+/* ---------- Plynulé přechody (online část i celá aplikace) ---------- */
+@keyframes screenIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes roomFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes roomSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes roomSheetDown { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes roomPop {
+  from { opacity: 0; transform: scale(0.72); }
+  to { opacity: 1; transform: none; }
+}
+
+/* každá obrazovka při změně přijede zprava; backwards nechá transformaci po skončení pryč (kvůli position: fixed) */
+.app > * { animation: screenIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+.room-sheet-wrap { animation: roomFade 0.22s ease-out backwards; }
+.room-sheet-wrap.closing { animation: roomFade 0.26s ease-in forwards; }
+.room-sheet { animation: roomSheetUp 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.room-sheet-wrap.closing .room-sheet { animation: roomSheetDown 0.26s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.room-count-num { display: inline-block; animation: roomPop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+.room-tile,
+.room-def,
+.room-row,
+.room-badge,
+.room-player,
+.room-dot,
+.room-banner {
+  transition: background-color 0.25s ease, border-color 0.25s ease, outline-color 0.25s ease, color 0.25s ease, transform 0.15s ease;
+}
+.room-tile:active:not(:disabled),
+.room-def:active:not(:disabled) { transform: scale(0.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .app > *,
+  .room-sheet-wrap,
+  .room-sheet,
+  .room-count-num { animation: none !important; }
+}
