@@ -646,3 +646,8 @@ input[type='text'] {
 .room-def-name { font-family: Urbanist, sans-serif; font-size: 17px; font-weight: 800; }
 .room-def-text { font-size: 14px; line-height: 1.45; }
 .room-def { display: flex; flex-direction: column; gap: 4px; }
+
+/* Obhajoba */
+.room-slot.target { background: var(--yellow); color: var(--ink); border-color: var(--yellow); animation: roomPop 0.4s ease both; }
+.room-slot.target .room-slot-term { font-size: 22px; }
+.room-slot.correct { background: var(--teal); color: var(--cream); border: 2px solid var(--yellow); animation: roomPop 0.4s ease both; }

@@ -116,7 +116,7 @@ export default function Room({ pid, nick, onCheck }) {
   }, []);
 
   const room = data?.room || null;
-  const finished = room?.status === 'scenarios_done';
+  const finished = room?.status === 'defence_done';
   const selTerm = room?.state?.sel_term ?? null;
 
   // Po skončení hry čekáme, až facilitátor odemkne výstupní test
@@ -171,6 +171,11 @@ export default function Room({ pid, nick, onCheck }) {
   // Dočasně pro testování: ukončí scénáře
   function skipScenarios() {
     act('skip_scenarios');
+  }
+
+  // Dočasně pro testování: ukončí obhajobu
+  function skipDefence() {
+    act('skip_defence');
   }
 
   async function join(ev) {
@@ -469,13 +474,52 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 5) Scénáře hotové (konec zatím hotové části; další části přijdou později)
+  // 5) Obhajoba: příprava a hlasování o umístěných kartách
+  if (room.status === 'defence_ready') {
+    return (
+      <ReadyScreen
+        key="defenceReady"
+        nick={nick}
+        label={`Místnost ${room.code}`}
+        eyebrow="Obhajoba"
+        title="Scénáře jsou hotové"
+        text="Každý z vás obhájí své umístění. Ostatní hlasují, jestli karta sedí. Začnete, až budou připraveni všichni."
+        players={players}
+        me={me}
+        busy={busy}
+        error={error}
+        onReady={(v) => act('set_defence_ready', { p_ready: v })}
+        onSkip={skipDefence}
+        offlineBanner={offlineBanner}
+      />
+    );
+  }
+
+  if (room.status === 'defence') {
+    return (
+      <DefenceView
+        nick={nick}
+        room={room}
+        players={players}
+        st={st}
+        votes={data.votes || []}
+        meSeat={meSeat}
+        busy={busy}
+        error={error}
+        act={act}
+        offlineBanner={offlineBanner}
+        onSkip={skipDefence}
+      />
+    );
+  }
+
+  // 6) Obhajoba hotová (konec zatím hotové části; další části přijdou později)
   if (finished) {
     return (
       <Shell key="finished" nick={nick} label={`Místnost ${room.code}`}>
         <div class="stack grow">
           <div class="stack gap-xs">
-            <span class="eyebrow">Scénáře hotové</span>
+            <span class="eyebrow">Obhajoba hotová</span>
             <h1>Skvělá práce</h1>
             <p class="muted">Další část připravujeme. Výstupní test se odemkne, až facilitátor ukončí hru.</p>
           </div>
@@ -929,6 +973,134 @@ function ScenarioPlay({
             </button>
           </div>
         </div>
+      )}
+    </Shell>
+  );
+}
+
+// Obhajoba: obhajující hráč vysvětlí umístění, ostatní hlasují, pak se ukáže správné místo
+function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offlineBanner, onSkip }) {
+  const items = st.def_items || [];
+  const i = st.def_i ?? 0;
+  const item = items[i];
+  const phase = st.def_phase;
+  const pack = st.pack || [];
+  const placements = st.placements || {};
+  const owner = players.find((p) => p.seat === item.seat);
+  const amOwner = item.seat === meSeat;
+  const code = item.key.split(':')[0];
+  const slots = slotsFor(code);
+  const correct = slots.find((s) => s.term === item.term);
+  const isCorrect = correct?.key === item.key;
+  const voters = players.filter((p) => p.seat !== item.seat);
+  const myVote = votes.find((v) => v.seat === meSeat);
+  const agree = votes.filter((v) => v.agree).length;
+  const disagree = votes.length - agree;
+  const nextItem = items[i + 1];
+  const nextOwner = nextItem ? players.find((p) => p.seat === nextItem.seat) : null;
+  const sc = scenarios.scenarios.find((x) => x.code === code);
+
+  function renderSlot(s) {
+    if (!pack.includes(s.term)) {
+      return <div class="room-slot off" key={s.key}><span class="room-slot-note">Nepoužito</span></div>;
+    }
+    if (phase === 'defend' && s.key === item.key) {
+      return (
+        <div class="room-slot target" key={s.key}>
+          <span class="room-slot-who">{owner?.nickname}</span>
+          <span class="room-slot-term">?</span>
+        </div>
+      );
+    }
+    if (phase === 'reveal' && correct && s.key === correct.key) {
+      return (
+        <div class="room-slot correct" key={s.key}>
+          <span class="room-slot-who">{isCorrect ? 'Správně' : 'Patří sem'}</span>
+          <span class="room-slot-term">{termByCode[item.term].czName}</span>
+        </div>
+      );
+    }
+    const p = placements[s.key];
+    if (p) {
+      const who = p.seat === meSeat ? 'Ty' : players.find((x) => x.seat === p.seat)?.nickname;
+      return (
+        <div class="room-slot taken" key={s.key}>
+          <span class="room-slot-who">{who}</span>
+          <span class="room-slot-term">{termByCode[p.term].czName}</span>
+        </div>
+      );
+    }
+    return <div class="room-slot off" key={s.key}><span class="room-slot-note">Volný</span></div>;
+  }
+
+  return (
+    <Shell key={`def-${i}-${phase}`} nick={nick} onSkip={onSkip} label={`Obhajoba · ${i + 1} / ${items.length}`}>
+      {offlineBanner}
+      <div class="room-banner">
+        <span class="room-avatar">{initial(owner?.nickname)}</span>
+        <span class="stack gap-xs">
+          <span class="room-banner-title">{amOwner ? 'Obhajuješ ty' : `Obhajuje ${owner?.nickname}`}</span>
+          <span class="small">Pojem: <b>{termByCode[item.term].czName}</b></span>
+        </span>
+      </div>
+
+      {phase === 'defend' ? (
+        <h2 class="room-sheet-title">Proč patří {termByCode[item.term].czName} právě sem?</h2>
+      ) : (
+        <div class="room-pair">
+          <span class="n">{isCorrect ? 'Správně umístěno' : 'Patří jinam'}</span>
+          <span class="d">{termByCode[item.term].czName}. Skupina souhlasila {agree} : {disagree}.</span>
+        </div>
+      )}
+
+      <div class="room-scenario-art">
+        <img class="room-scenario-img" src={`assets/scenario-${code}.svg`} alt={sc.name_cs} />
+        <div class="room-slots">{slots.map(renderSlot)}</div>
+      </div>
+
+      {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
+
+      {phase === 'defend' && !amOwner && (
+        <>
+          <div class="room-defs">
+            <button
+              type="button"
+              class={`room-def${myVote && !myVote.agree ? ' on' : ''}`}
+              disabled={busy}
+              onClick={() => act('defence_vote', { p_agree: false })}
+            >
+              <span class="room-def-name">Nesouhlasím</span>
+            </button>
+            <button
+              type="button"
+              class={`room-def${myVote && myVote.agree ? ' on' : ''}`}
+              disabled={busy}
+              onClick={() => act('defence_vote', { p_agree: true })}
+            >
+              <span class="room-def-name">Souhlasím</span>
+            </button>
+          </div>
+          <p class="room-hint">Hlasovali {votes.length} ze {voters.length} · pak se ukáže správné umístění</p>
+        </>
+      )}
+
+      {phase === 'defend' && amOwner && (
+        <p class="room-hint">Vysvětli nahlas na Teams, proč karta patří sem. Ostatní hlasují. Hlasovali {votes.length} ze {voters.length}.</p>
+      )}
+
+      {phase === 'reveal' && (
+        <>
+          {amOwner ? (
+            <button type="button" class="btn primary" disabled={busy} onClick={() => act('defence_next')}>
+              {nextItem
+                ? (nextOwner?.seat === meSeat ? 'Další: obhajuješ ty' : `Další: obhajuje ${nextOwner?.nickname}`)
+                : 'Dokončit obhajobu'}
+            </button>
+          ) : null}
+          <p class="room-hint">
+            {amOwner ? 'Pokračuje se automaticky za 5 s, když nic nestiskneš.' : 'Pokračuje se automaticky za 5 s.'}
+          </p>
+        </>
       )}
     </Shell>
   );
