@@ -1104,7 +1104,7 @@ function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offli
         </div>
       )}
 
-      <div class="room-scenario-art">
+      <div class="room-scenario-art compact">
         <img class="room-scenario-img" src={`assets/scenario-${code}.svg`} alt={sc.name_cs} />
         <div class="room-slots">{slots.map(renderSlot)}</div>
       </div>

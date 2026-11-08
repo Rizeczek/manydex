@@ -648,8 +648,15 @@ input[type='text'] {
 .room-def { display: flex; flex-direction: column; gap: 4px; }
 
 /* Obhajoba */
-.room-slot.target { background: var(--yellow); color: var(--ink); border-color: var(--yellow); animation: roomPop 0.4s ease both; }
-.room-slot.target .room-slot-term { font-size: 22px; }
+.room-slot.target { background: var(--yellow); color: var(--ink); border-color: var(--yellow); animation: roomPulse 1.8s ease-in-out infinite; }
+.room-scenario-art.compact .room-scenario-img { width: auto; height: auto; max-height: 24dvh; max-width: 100%; margin: 0 auto; object-fit: contain; }
+@keyframes roomPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 190, 30, 0); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(253, 190, 30, 0.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-slot.target { animation: none; }
+}
 .room-slot.correct { background: var(--teal); color: var(--cream); border: 2px solid var(--yellow); animation: roomPop 0.4s ease both; }
 .room-def-banner { align-items: center; }
 .room-def-banner-text { flex: 1; min-width: 0; }
