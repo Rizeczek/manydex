@@ -150,6 +150,7 @@ function App() {
       {view === 'pretest' && (
         <Quiz
           kind="pre"
+          skippable
           label="Vstupní test"
           questions={tests.pre_test.questions}
           nick={nick}
@@ -451,7 +452,7 @@ function Recover({ onPick, onBack }) {
 
 // ---------- Testy (vstupní i výstupní) ----------
 
-function Quiz({ kind, label, questions, nick, onDone }) {
+function Quiz({ kind, label, questions, nick, onDone, skippable = false }) {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -473,6 +474,20 @@ function Quiz({ kind, label, questions, nick, onDone }) {
   async function next() {
     if (!selected || busy) return;
     const updated = { ...answers, [q.id]: selected };
+    setAnswers(updated);
+    if (!last) {
+      goTo(index + 1, updated);
+      return;
+    }
+    setBusy(true);
+    await onDone(updated);
+    setBusy(false);
+  }
+
+  // Dočasně pro testování: přeskočí otázku (nevyplněné se uloží jako Nevím)
+  async function skip() {
+    if (busy) return;
+    const updated = { ...answers, [q.id]: selected ?? UNKNOWN };
     setAnswers(updated);
     if (!last) {
       goTo(index + 1, updated);
@@ -529,6 +544,9 @@ function Quiz({ kind, label, questions, nick, onDone }) {
           {last ? 'Dokončit' : 'Další otázka'}
         </button>
       </div>
+      {skippable && (
+        <button type="button" class="skip-btn" disabled={busy} onClick={skip}>SKIP</button>
+      )}
     </div>
   );
 }

@@ -34,7 +34,7 @@ function initial(nick) {
   return (nick || '?').trim().charAt(0).toUpperCase();
 }
 
-function Shell({ nick, label, children }) {
+function Shell({ nick, label, onSkip, children }) {
   return (
     <div class="page stack room">
       <div class="topbar">
@@ -42,6 +42,9 @@ function Shell({ nick, label, children }) {
         <span class="tag">{label}</span>
       </div>
       {children}
+      {onSkip && (
+        <button type="button" class="skip-btn" onClick={onSkip}>SKIP</button>
+      )}
     </div>
   );
 }
@@ -144,6 +147,11 @@ export default function Room({ pid, nick, onCheck }) {
       setBusy(false);
       await load();
     }
+  }
+
+  // Dočasně pro testování: rozdá zbylé karty přítomným hráčům a ukončí párování
+  function skipPairing() {
+    act('skip_pairing');
   }
 
   async function join(ev) {
@@ -348,7 +356,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (showResult && last.seat === meSeat) {
     return (
-      <Shell key="result" nick={nick} label="Kontrola páru">
+      <Shell key="result" nick={nick} onSkip={skipPairing} label="Kontrola páru">
         <ResultView last={last} players={players} st={st} />
       </Shell>
     );
@@ -356,7 +364,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (myMatched >= PAIRS_PER_PLAYER) {
     return (
-      <Shell key="pairdone" nick={nick} label={`Místnost ${room.code}`}>
+      <Shell key="pairdone" nick={nick} onSkip={skipPairing} label={`Místnost ${room.code}`}>
         {offlineBanner}
         <div class="stack grow">
           <div class="stack gap-xs">
@@ -379,7 +387,7 @@ export default function Room({ pid, nick, onCheck }) {
 
   if (!isMyTurn) {
     return (
-      <Shell key="watch" nick={nick} label={`Místnost ${room.code}`}>
+      <Shell key="watch" nick={nick} onSkip={skipPairing} label={`Místnost ${room.code}`}>
         {offlineBanner}
         {boardHeader}
         <div class="room-banner dark">
@@ -407,7 +415,7 @@ export default function Room({ pid, nick, onCheck }) {
   const sheetOpen = !!selTerm;
   const sheetShown = selTerm || sheetTerm;
   return (
-    <Shell key="turn" nick={nick} label={`Místnost ${room.code}`}>
+    <Shell key="turn" nick={nick} onSkip={skipPairing} label={`Místnost ${room.code}`}>
       {offlineBanner}
       {boardHeader}
       <div class="room-banner">
