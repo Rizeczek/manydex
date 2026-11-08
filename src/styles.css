@@ -230,11 +230,24 @@ input[type='text'] {
   border-style: dashed; border-color: var(--line-dash); background: transparent; color: var(--muted);
 }
 .option.unknown .key { border: 1.5px solid var(--line-dash); background: transparent; }
+/* Zvolené Nevím / Neznám: stejný aktivní stav jako ostatní odpovědi */
+.option.unknown.selected {
+  border-style: solid;
+  border-color: var(--teal);
+  background: var(--teal-soft);
+  color: var(--ink);
+}
+.option.unknown.selected .key {
+  border: none;
+  background: var(--teal);
+  color: var(--cream-text);
+}
 
 /* ----- Karty pojmů: stoh karet a animace ----- */
 
 .deck-stage {
   position: relative;
+  margin-bottom: clamp(16px, 3.5vh, 32px);
   flex: 1 1 auto;
   min-height: 0;
   touch-action: pan-y;
@@ -242,30 +255,34 @@ input[type='text'] {
 
 .term-card {
   position: absolute;
-  inset: 0;
+  top: 18px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 22px;
   background: var(--teal);
   color: var(--cream-text);
   padding: clamp(14px, 2.4vh, 18px) 18px clamp(16px, 2.6vh, 22px);
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.6vh, 14px);
+  gap: 6px;
   box-shadow: 0 12px 28px rgba(10, 38, 41, 0.22);
   z-index: 2;
-  transform-origin: 50% 90%;
+  transform-origin: 50% 0;
   transition: background-color 0.4s ease;
 }
 /* Karta pod horní kartou: menší a o kus níž */
 .term-card.behind,
 .term-card.shrink {
   z-index: 1;
-  box-shadow: 0 6px 16px rgba(10, 38, 41, 0.14);
-  transform: translateY(14px) scale(0.92);
+  box-shadow: none;
+  transform: translateY(-18px) scale(0.92);
 }
 /* Karta pod horní je tmavší a plně neprůhledná, aby od horní jasně odlišila */
 .term-card.behind,
 .term-card.shrink {
-  background: #163f46;
+  background: #0d3a41;
+  opacity: 1;
   transition: background-color 0.4s ease;
 }
 .term-card.behind { animation: fadeIn 0.35s ease both; }
@@ -293,7 +310,7 @@ input[type='text'] {
   to { opacity: 1; }
 }
 @keyframes promote {
-  from { transform: translateY(14px) scale(0.92); }
+  from { transform: translateY(-18px) scale(0.92); }
   to { transform: none; }
 }
 @keyframes enterRight {
@@ -302,7 +319,7 @@ input[type='text'] {
 }
 @keyframes shrink {
   from { transform: none; }
-  to { transform: translateY(14px) scale(0.92); }
+  to { transform: translateY(-18px) scale(0.92); }
 }
 
 .card-head { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
@@ -314,6 +331,7 @@ input[type='text'] {
 .illu {
   flex: 1 1 auto;
   min-height: 0;
+  margin-bottom: clamp(14px, 2.8vh, 26px);
   border-radius: 16px;
   background: #fbf9f5;
   padding: 6px;
