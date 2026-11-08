@@ -980,6 +980,8 @@ function ScenarioPlay({
 
 // Obhajoba: obhajující hráč vysvětlí umístění, ostatní hlasují, pak se ukáže správné místo
 function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offlineBanner, onSkip }) {
+  // Index položky, u které vysvětlující hráč zrovna zobrazil definici (-1 = skryto)
+  const [showDefFor, setShowDefFor] = useState(-1);
   const items = st.def_items || [];
   const i = st.def_i ?? 0;
   const item = items[i];
@@ -1008,7 +1010,7 @@ function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offli
       return (
         <div class="room-slot target" key={s.key}>
           <span class="room-slot-who">{owner?.nickname}</span>
-          <span class="room-slot-term">?</span>
+          <span class="room-slot-term">{termByCode[item.term].czName}</span>
         </div>
       );
     }
@@ -1085,7 +1087,22 @@ function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offli
       )}
 
       {phase === 'defend' && amOwner && (
-        <p class="room-hint">Vysvětli nahlas na Teams, proč karta patří sem. Ostatní hlasují. Hlasovali {votes.length} ze {voters.length}.</p>
+        <>
+          {showDefFor === i ? (
+            <div class="room-pair">
+              <span class="n">{termByCode[item.term].czName}</span>
+              <span class="d">{termByCode[item.term].definition}</span>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            class="btn outline"
+            onClick={() => setShowDefFor(showDefFor === i ? -1 : i)}
+          >
+            {showDefFor === i ? 'Skrýt definici' : 'Zobrazit definici'}
+          </button>
+          <p class="room-hint">Vysvětli nahlas na Teams, proč karta patří sem. Ostatní hlasují. Hlasovali {votes.length} ze {voters.length}.</p>
+        </>
       )}
 
       {phase === 'reveal' && (
