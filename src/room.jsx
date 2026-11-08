@@ -107,7 +107,7 @@ export default function Room({ pid, nick, onCheck }) {
   }, []);
 
   const room = data?.room || null;
-  const finished = room?.status === 'pairing_done';
+  const finished = room?.status === 'taboo_done';
   const selTerm = room?.state?.sel_term ?? null;
 
   // Po skončení hry čekáme, až facilitátor odemkne výstupní test
@@ -152,6 +152,11 @@ export default function Room({ pid, nick, onCheck }) {
   // Dočasně pro testování: rozdá zbylé karty přítomným hráčům a ukončí párování
   function skipPairing() {
     act('skip_pairing');
+  }
+
+  // Dočasně pro testování: ukončí Taboo
+  function skipTaboo() {
+    act('skip_taboo');
   }
 
   async function join(ev) {
@@ -279,25 +284,142 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 3) Hra skončila (konec části B1; Taboo a další části přijdou později)
+  // 3) Taboo: příprava a vysvětlování
+  if (room.status === 'taboo_ready') {
+    const readyCount = players.filter((p) => p.ready).length;
+    return (
+      <Shell key="tabooReady" nick={nick} onSkip={skipTaboo} label={`Místnost ${room.code}`}>
+        {offlineBanner}
+        <div class="stack grow">
+          <div class="stack gap-xs">
+            <span class="eyebrow">Taboo</span>
+            <h1>Pairing je hotový</h1>
+            <p class="muted">Každý teď vysvětlí svoje 3 pojmy, aniž by řekl zakázaná slova. Začnete, až budou připraveni všichni.</p>
+          </div>
+          <div class="room-list">
+            {players.map((p) => (
+              <div class={`room-row${p.ready ? ' ready' : ''}`} key={p.seat}>
+                <span class="room-avatar">{initial(p.nickname)}</span>
+                <span class="room-who">
+                  <span class="room-name">{p.nickname}</span>
+                  <span class="room-sub">{p.me ? 'Ty' : 'Připojen/a'}</span>
+                </span>
+                <span class={`room-badge${p.ready ? ' ready' : ''}`}>{p.ready ? 'Připraven/a ✓' : 'Čeká'}</span>
+              </div>
+            ))}
+          </div>
+          <div class="room-count">
+            <span class="muted">Připraveno</span>
+            <b>{readyCount} / {players.length}</b>
+          </div>
+        </div>
+        {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
+        {me?.ready ? (
+          <button type="button" class="btn outline" disabled={busy} onClick={() => act('set_taboo_ready', { p_ready: false })}>
+            Zrušit připravenost
+          </button>
+        ) : (
+          <button type="button" class="btn primary" disabled={busy} onClick={() => act('set_taboo_ready', { p_ready: true })}>
+            Jsem připraven/a
+          </button>
+        )}
+      </Shell>
+    );
+  }
+
+  if (room.status === 'taboo') {
+    const queue = st.queue || [];
+    const i = st.taboo_i ?? 0;
+    const cur = queue[i];
+    const curSeat = cur?.seat;
+    const explainer = players.find((p) => p.seat === curSeat);
+    const mine = curSeat === meSeat;
+    const total = queue.filter((q) => q.seat === curSeat).length;
+    const idx = queue.slice(0, i + 1).filter((q) => q.seat === curSeat).length;
+    const isLast = idx === total;
+    const term = termByCode[cur.term];
+
+    if (mine) {
+      return (
+        <Shell key="tabooExplain" nick={nick} onSkip={skipTaboo} label="Taboo">
+          {offlineBanner}
+          <div class="room-taboo-head">
+            <div class="stack gap-xs">
+              <span class="room-eyebrow room-eyebrow-teal">Vysvětluješ ty</span>
+              <h1 class="room-taboo-title">Pojem {idx} ze {total}</h1>
+            </div>
+            <div class="room-segments">
+              {Array.from({ length: total }, (_, j) => (
+                <span key={j} class={`room-seg${j < idx - 1 ? ' done' : j === idx - 1 ? ' now' : ''}`} />
+              ))}
+            </div>
+          </div>
+          <div class="room-taboo-card">
+            <h2>{term.czName}</h2>
+            <p>{term.definition}</p>
+          </div>
+          <div class="stack gap-xs">
+            <h3 class="room-sub-title">Nesmíš říct</h3>
+            <div class="room-taboo-words">
+              {term.taboo.map((w) => <span key={w}>{w}</span>)}
+            </div>
+          </div>
+          <p class="room-hint">Vysvětli pojem vlastními slovy a přidej příklad z praxe. Ostatní ho vidí jen jako název.</p>
+          {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
+          <button type="button" class="btn primary" disabled={busy} onClick={() => act('taboo_next')}>
+            {isLast ? 'Hotovo' : 'Další pojem'}
+          </button>
+        </Shell>
+      );
+    }
+
+    const order = [];
+    queue.forEach((q) => {
+      if (!order.includes(q.seat)) order.push(q.seat);
+    });
+    const lastIdx = {};
+    queue.forEach((q, k) => {
+      lastIdx[q.seat] = k;
+    });
+    return (
+      <Shell key="tabooListen" nick={nick} onSkip={skipTaboo} label="Taboo">
+        {offlineBanner}
+        <div class="room-listen">
+          <span class="room-listen-avatar">{initial(explainer?.nickname)}</span>
+          <h1 class="room-taboo-title">{explainer?.nickname} vysvětluje</h1>
+          <p class="muted">pojem {idx} ze {total}</p>
+          <span class="room-term room-term-big">{term.czName}</span>
+          <p class="room-hint">Poslouchej na Teams. Nesedí ti vysvětlení? Zeptej se, dokud mu nerozumíte všichni.</p>
+        </div>
+        <div class="stack gap-xs">
+          <h2 class="room-sub-title">Pořadí</h2>
+          <div class="room-order">
+            {order.map((seat) => {
+              const p = players.find((x) => x.seat === seat);
+              const stateName = seat === curSeat ? 'now' : lastIdx[seat] < i ? 'done' : 'next';
+              const label = stateName === 'now' ? 'vysvětluje' : stateName === 'done' ? 'hotovo' : 'další';
+              return (
+                <div class={`room-order-item ${stateName}`} key={seat}>
+                  <span class="room-name">{p?.nickname}</span>
+                  <span class="room-sub">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  // 4) Taboo hotové (konec zatím hotové části; další části přijdou později)
   if (finished) {
     return (
       <Shell key="finished" nick={nick} label={`Místnost ${room.code}`}>
         <div class="stack grow">
           <div class="stack gap-xs">
-            <span class="eyebrow">Párování hotové</span>
-            <h1>Hra ve skupině je hotová</h1>
-            <p class="muted">Každý má své 3 páry. Čekej na další část. Výstupní test se odemkne, až facilitátor ukončí hru.</p>
-          </div>
-          <div class="room-players">
-            {players.map((p) => (
-              <div class="room-player" key={p.seat}>
-                <span class="room-name">{p.nickname}</span>
-                <span class="room-dots">
-                  {[0, 1, 2].map((i) => <span class={`room-dot${i < p.matched ? ' on' : ''}`} key={i} />)}
-                </span>
-              </div>
-            ))}
+            <span class="eyebrow">Taboo hotové</span>
+            <h1>Skvělá práce</h1>
+            <p class="muted">Další část připravujeme. Výstupní test se odemkne, až facilitátor ukončí hru.</p>
           </div>
         </div>
         <div class="room-note">
@@ -308,7 +430,15 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 4) Párování
+  if (room.status !== 'pairing') {
+    return (
+      <Shell key="wait" nick={nick} label={`Místnost ${room.code}`}>
+        <p class="muted">Připojování…</p>
+      </Shell>
+    );
+  }
+
+  // 5) Párování
   const myMatched = me?.matched ?? 0;
   const myPairs = st.matched.filter((m) => m.seat === meSeat);
   const turnSeat = st.turn_seat;
