@@ -589,7 +589,7 @@ input[type='text'] {
 .room-seg.done { background: var(--teal); }
 .room-seg.now { background: var(--yellow); }
 .room-taboo-card { border-radius: 22px; background: var(--teal); color: var(--cream-text); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-.room-taboo-card h2 { margin: 0; font-family: Urbanist, sans-serif; font-size: 30px; line-height: 1.1; font-weight: 700; }
+.room-taboo-card h2 { color: var(--cream-text); margin: 0; font-family: Urbanist, sans-serif; font-size: 30px; line-height: 1.1; font-weight: 700; }
 .room-taboo-card p { margin: 0; font-size: 16px; line-height: 1.55; color: #d8e2e0; }
 .room-sub-title { margin: 0; font-family: Urbanist, sans-serif; font-size: 16px; font-weight: 600; }
 .room-taboo-words { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -602,7 +602,7 @@ input[type='text'] {
   width: 88px; height: 88px; border-radius: 44px; background: var(--yellow); color: var(--ink);
   display: flex; align-items: center; justify-content: center; font-family: Urbanist, sans-serif; font-size: 38px; font-weight: 700;
 }
-.room-term-big { font-size: 24px; padding: 14px 22px; }
+.room-term-big { align-self: center; font-size: 24px; padding: 14px 22px; }
 .room-order { display: flex; gap: 8px; }
 .room-order-item {
   flex: 1 1 0; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--card);
