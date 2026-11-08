@@ -201,7 +201,11 @@ input[type='text'] {
 /* ----- Testy ----- */
 
 .progress { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
-.progress-fill { height: 6px; border-radius: 3px; background: var(--teal); }
+.progress-fill {
+  height: 6px; border-radius: 3px; background: var(--teal);
+  /* Pružný přechod: lišta se natáhne a lehce přestřelí, jako žížala */
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
 .question-card {
   background: var(--card); border-radius: 20px; padding: clamp(14px, 2.6vh, 22px);

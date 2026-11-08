@@ -136,9 +136,9 @@ function App() {
             <span class="eyebrow">Než začneme</span>
             <h1>12 otázek, žádné známkování</h1>
             <ul class="tips">
-              <li><Icon name="chart" />Měříme, co víš teď, ještě před hrou. Nejde o tvoje hodnocení.</li>
-              <li><Icon name="help" />Když odpověď neznáš, zvol <b>Nevím / Neznám</b>. Hádání zkresluje výsledky.</li>
-              <li><Icon name="eye" />Správné odpovědi se během testu nezobrazují.</li>
+              <li><Icon name="chart" /><span>Měříme, co víš teď, ještě před hrou. Nejde o tvoje hodnocení.</span></li>
+              <li><Icon name="help" /><span>Když odpověď neznáš, zvol <b>Nevím / Neznám</b>. Hádání zkresluje výsledky.</span></li>
+              <li><Icon name="eye" /><span>Správné odpovědi se během testu nezobrazují.</span></li>
             </ul>
           </div>
           <button type="button" class="btn secondary" onClick={() => setView('pretest')}>Začít test</button>
@@ -458,18 +458,30 @@ function Quiz({ kind, label, questions, nick, onDone }) {
   const question = kind === 'pre' ? 'Který pojem to je?' : 'Která definice je správná?';
   const prompt = kind === 'pre' ? q.prompt : q.prompt;
 
+  // Přejde na otázku i s odpovědí, kterou na ní student zvolil dříve
+  function goTo(i, current) {
+    setIndex(i);
+    setSelected(current[questions[i].id] ?? null);
+  }
+
   async function next() {
     if (!selected || busy) return;
     const updated = { ...answers, [q.id]: selected };
+    setAnswers(updated);
     if (!last) {
-      setAnswers(updated);
-      setSelected(null);
-      setIndex(index + 1);
+      goTo(index + 1, updated);
       return;
     }
     setBusy(true);
     await onDone(updated);
     setBusy(false);
+  }
+
+  function back() {
+    if (index === 0 || busy) return;
+    const updated = selected ? { ...answers, [q.id]: selected } : answers;
+    setAnswers(updated);
+    goTo(index - 1, updated);
   }
 
   return (
@@ -505,9 +517,12 @@ function Quiz({ kind, label, questions, nick, onDone }) {
         ))}
       </div>
 
-      <button type="button" class="btn primary" disabled={!selected || busy} onClick={next}>
-        {last ? 'Dokončit' : 'Další otázka'}
-      </button>
+      <div class="row gap-sm">
+        <button type="button" class="btn outline grow-1" disabled={index === 0 || busy} onClick={back}>Zpět</button>
+        <button type="button" class="btn primary grow-2" disabled={!selected || busy} onClick={next}>
+          {last ? 'Dokončit' : 'Další otázka'}
+        </button>
+      </div>
     </div>
   );
 }
