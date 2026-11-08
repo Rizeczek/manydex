@@ -484,17 +484,17 @@ function Quiz({ kind, label, questions, nick, onDone, skippable = false }) {
     setBusy(false);
   }
 
-  // Dočasně pro testování: přeskočí otázku (nevyplněné se uloží jako Nevím)
+  // Dočasně pro testování: přeskočí celý test. Co je vyplněné, se uloží, zbytek jako Nevím
   async function skip() {
     if (busy) return;
-    const updated = { ...answers, [q.id]: selected ?? UNKNOWN };
-    setAnswers(updated);
-    if (!last) {
-      goTo(index + 1, updated);
-      return;
+    const filled = { ...answers };
+    if (selected) filled[q.id] = selected;
+    for (const question of questions) {
+      if (!filled[question.id]) filled[question.id] = UNKNOWN;
     }
+    setAnswers(filled);
     setBusy(true);
-    await onDone(updated);
+    await onDone(filled);
     setBusy(false);
   }
 
