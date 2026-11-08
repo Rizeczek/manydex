@@ -130,7 +130,7 @@ function App() {
       )}
 
       {view === 'pretestIntro' && (
-        <>
+        <div class="page stack">
           {bar('Vstupní test')}
           <div class="stack grow">
             <span class="eyebrow">Než začneme</span>
@@ -142,7 +142,7 @@ function App() {
             </ul>
           </div>
           <button type="button" class="btn secondary" onClick={() => setView('pretest')}>Začít test</button>
-        </>
+        </div>
       )}
 
       {view === 'pretest' && (
@@ -165,7 +165,7 @@ function App() {
       )}
 
       {view === 'primingIntro' && (
-        <>
+        <div class="page stack">
           {bar('Karty pojmů')}
           <div class="stack grow">
             <span class="eyebrow">Seznam se s pojmy</span>
@@ -188,7 +188,7 @@ function App() {
           >
             Začít
           </button>
-        </>
+        </div>
       )}
 
       {view === 'priming' && st?.priming_started_at && (
@@ -216,7 +216,7 @@ function App() {
       )}
 
       {view === 'postIntro' && (
-        <>
+        <div class="page stack">
           {bar('Výstupní test')}
           <div class="stack grow">
             <span class="eyebrow">Hra dokončena</span>
@@ -224,7 +224,7 @@ function App() {
             <p>12 otázek, stejných jako na začátku. Odpovídej podle toho, co víš teď. Když si nejsi jistý(á), zvol Nevím.</p>
           </div>
           <button type="button" class="btn secondary" onClick={() => setView('post')}>Začít test</button>
-        </>
+        </div>
       )}
 
       {view === 'post' && (
@@ -569,7 +569,7 @@ function Priming({ nick, startedAt, onTimeUp, onDone }) {
   let underClass = 'behind';
   if (anim && anim.dir === 1) {
     top = anim.from;
-    topClass = 'fly-left';
+    topClass = 'fly-right';
     under = anim.to;
     underClass = 'promote';
   } else if (anim && anim.dir === -1) {

@@ -249,6 +249,7 @@ input[type='text'] {
   box-shadow: 0 12px 28px rgba(10, 38, 41, 0.22);
   z-index: 2;
   transform-origin: 50% 90%;
+  transition: background-color 0.4s ease;
 }
 /* Karta pod horní kartou: menší a o kus níž */
 .term-card.behind,
@@ -257,10 +258,16 @@ input[type='text'] {
   box-shadow: 0 6px 16px rgba(10, 38, 41, 0.14);
   transform: translateY(14px) scale(0.92);
 }
-.term-card.behind { opacity: 0.95; }
-/* Další: horní karta odskočí doleva, karta pod ní se zvětší na plnou velikost */
-.term-card.fly-left {
-  animation: flyLeft 0.4s ease-in forwards;
+/* Karta pod horní je tmavší a plně neprůhledná, aby od horní jasně odlišila */
+.term-card.behind,
+.term-card.shrink {
+  background: #163f46;
+  transition: background-color 0.4s ease;
+}
+.term-card.behind { animation: fadeIn 0.35s ease both; }
+/* Další: horní karta odskočí doprava, karta pod ní se zvětší na plnou velikost */
+.term-card.fly-right {
+  animation: flyRight 0.4s ease-in forwards;
 }
 .term-card.promote {
   z-index: 1;
@@ -274,8 +281,12 @@ input[type='text'] {
   animation: shrink 0.4s ease both;
 }
 
-@keyframes flyLeft {
-  to { transform: translate(-135%, -3%) rotate(-18deg); opacity: 0; }
+@keyframes flyRight {
+  to { transform: translate(135%, -3%) rotate(18deg); opacity: 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes promote {
   from { transform: translateY(14px) scale(0.92); }
