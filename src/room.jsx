@@ -860,6 +860,19 @@ function ScenarioPlay({
   const myPlaced = Object.entries(placements).filter(([, p]) => p.seat === meSeat);
   const hand = myMatched.filter((t) => !myPlaced.some(([, p]) => p.term === t));
   const doneCount = players.filter((p) => Object.values(placements).filter((x) => x.seat === p.seat).length >= p.matched).length;
+  // Slot mé karty, u kterého se nabízí vzetí zpět (bottom sheet)
+  const [takeKey, setTakeKey] = useState(null);
+  const takeOpen = takeKey && placements[takeKey]?.seat === meSeat ? takeKey : null;
+
+  function closeTake() {
+    setTakeKey(null);
+  }
+
+  function takeBack() {
+    const key = takeOpen;
+    closeTake();
+    act('scenario_take', { p_slot: key });
+  }
 
   function closePick() {
     setSlotPick(null);
@@ -905,8 +918,23 @@ function ScenarioPlay({
             const p = placements[s.key];
             if (p) {
               const owner = p.seat === meSeat ? 'Ty' : players.find((x) => x.seat === p.seat)?.nickname;
+              if (p.seat === meSeat) {
+                return (
+                  <button
+                    type="button"
+                    class="room-slot taken mine"
+                    key={s.key}
+                    disabled={busy}
+                    aria-label={`Moje karta ${termByCode[p.term].czName}. Klepni pro možnost vzít zpět.`}
+                    onClick={() => setTakeKey(s.key)}
+                  >
+                    <span class="room-slot-who">{owner}</span>
+                    <span class="room-slot-term">{termByCode[p.term].czName}</span>
+                  </button>
+                );
+              }
               return (
-                <div class={`room-slot taken${p.seat === meSeat ? ' mine' : ''}`} key={s.key}>
+                <div class="room-slot taken" key={s.key}>
                   <span class="room-slot-who">{owner}</span>
                   <span class="room-slot-term">{termByCode[p.term].czName}</span>
                 </div>
@@ -929,12 +957,6 @@ function ScenarioPlay({
           })}
         </div>
       </div>
-
-      {myPlaced.filter(([k]) => k.startsWith(`${sc.code}:`)).map(([k, p]) => (
-        <button type="button" class="room-takeback" key={k} disabled={busy} onClick={() => act('scenario_take', { p_slot: k })}>
-          Vzít „{termByCode[p.term].czName}“ zpět do ruky
-        </button>
-      ))}
 
       {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
 
@@ -970,6 +992,27 @@ function ScenarioPlay({
             </div>
             <button type="button" class="btn primary" disabled={busy || !cardPick} onClick={placeHere}>
               Umístit sem
+            </button>
+          </div>
+        </div>
+      )}
+
+      {takeOpen && (
+        <div class="room-sheet-wrap">
+          <div class="room-sheet" role="dialog" aria-label="Vzít kartu zpět">
+            <span class="room-grip" />
+            <div class="room-sheet-head">
+              <span class="stack gap-xs">
+                <span class="room-eyebrow">Tvoje karta</span>
+                <span class="room-term">{termByCode[placements[takeOpen].term].czName}</span>
+              </span>
+              <button type="button" class="room-x" aria-label="Zavřít" onClick={closeTake}>
+                <Icon name="close" />
+              </button>
+            </div>
+            <p class="small">{termByCode[placements[takeOpen].term].definition}</p>
+            <button type="button" class="btn outline" disabled={busy} onClick={takeBack}>
+              Vzít zpět do ruky
             </button>
           </div>
         </div>
@@ -1038,12 +1081,18 @@ function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offli
   return (
     <Shell key={`def-${i}-${phase}`} nick={nick} onSkip={onSkip} label={`Obhajoba · ${i + 1} / ${items.length}`}>
       {offlineBanner}
-      <div class="room-banner">
+      <div class="room-banner room-def-banner">
         <span class="room-avatar">{initial(owner?.nickname)}</span>
-        <span class="stack gap-xs">
+        <span class="stack gap-xs room-def-banner-text">
           <span class="room-banner-title">{amOwner ? 'Obhajuješ ty' : `Obhajuje ${owner?.nickname}`}</span>
           <span class="small">Pojem: <b>{termByCode[item.term].czName}</b></span>
+          {phase === 'defend' && amOwner && (
+            <span class="small muted">Vysvětli nahlas na Teams, proč karta patří sem.</span>
+          )}
         </span>
+        {phase === 'defend' && amOwner && (
+          <button type="button" class="room-mini" onClick={() => setShowDefFor(i)}>Definice</button>
+        )}
       </div>
 
       {phase === 'defend' ? (
@@ -1087,22 +1136,25 @@ function DefenceView({ nick, players, st, votes, meSeat, busy, error, act, offli
       )}
 
       {phase === 'defend' && amOwner && (
-        <>
-          {showDefFor === i ? (
-            <div class="room-pair">
-              <span class="n">{termByCode[item.term].czName}</span>
-              <span class="d">{termByCode[item.term].definition}</span>
+        <p class="room-hint">Ostatní hlasují. Hlasovali {votes.length} ze {voters.length}.</p>
+      )}
+
+      {phase === 'defend' && amOwner && showDefFor === i && (
+        <div class="room-sheet-wrap">
+          <div class="room-sheet" role="dialog" aria-label="Definice pojmu">
+            <span class="room-grip" />
+            <div class="room-sheet-head">
+              <span class="stack gap-xs">
+                <span class="room-eyebrow">Definice</span>
+                <span class="room-term">{termByCode[item.term].czName}</span>
+              </span>
+              <button type="button" class="room-x" aria-label="Zavřít" onClick={() => setShowDefFor(-1)}>
+                <Icon name="close" />
+              </button>
             </div>
-          ) : null}
-          <button
-            type="button"
-            class="btn outline"
-            onClick={() => setShowDefFor(showDefFor === i ? -1 : i)}
-          >
-            {showDefFor === i ? 'Skrýt definici' : 'Zobrazit definici'}
-          </button>
-          <p class="room-hint">Vysvětli nahlas na Teams, proč karta patří sem. Ostatní hlasují. Hlasovali {votes.length} ze {voters.length}.</p>
-        </>
+            <p class="room-def-full">{termByCode[item.term].definition}</p>
+          </div>
+        </div>
       )}
 
       {phase === 'reveal' && (
