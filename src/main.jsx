@@ -4,6 +4,7 @@ import terms from '../data/terms.json';
 import tests from '../data/tests.json';
 import { rpc } from './api.js';
 import Room from './room.jsx';
+import Admin from './admin.jsx';
 import './styles.css';
 
 const PID_KEY = 'manydex_pid';
@@ -735,4 +736,12 @@ function Waiting({ mode, nick, onCheck }) {
   );
 }
 
-render(<App />, document.getElementById('app'));
+// Nastavení z facilitátorského panelu: skrytí SKIP tlačítek (pro ostrý běh)
+rpc('get_settings')
+  .then((s) => document.body.classList.toggle('no-skip', s?.skip_enabled === false))
+  .catch(() => {});
+
+// Panel facilitátora je na adrese .../#/admin; přepnutí adresy v otevřené stránce načte znovu
+window.addEventListener('hashchange', () => location.reload());
+
+render(location.hash === '#/admin' ? <Admin /> : <App />, document.getElementById('app'));
