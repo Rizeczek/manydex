@@ -611,3 +611,38 @@ input[type='text'] {
 .room-order-item.now { border-color: var(--yellow); }
 .room-order-item.done { opacity: 0.5; }
 .room-order-item .room-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Scénáře ---------- */
+.room-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.room-tab {
+  height: 48px; border-radius: 12px; border: 2px solid var(--line-dash); background: var(--card); color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.room-tab-num { font-family: Urbanist, sans-serif; font-size: 16px; font-weight: 800; }
+.room-tab-count { font-size: 12px; font-weight: 600; }
+.room-tab.on { background: var(--teal); border-color: var(--teal); color: var(--cream); }
+.room-scenario-title { margin: 0; font-family: Urbanist, sans-serif; font-size: 26px; font-weight: 800; }
+.room-scenario-art { border-radius: 20px; background: var(--cream); overflow: hidden; display: flex; flex-direction: column; }
+.room-scenario-img { width: 100%; height: auto; display: block; }
+.room-slots { display: flex; justify-content: space-between; gap: 8px; padding: 0 6px 10px 6px; }
+.room-slot {
+  width: 31%; min-height: 78px; box-sizing: border-box; border-radius: 12px; padding: 8px;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; text-align: left; border: 2px solid transparent;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+.room-slot.free { background: var(--bg); border: 2px dashed var(--teal); color: var(--teal); justify-content: center; align-items: center; cursor: pointer; }
+.room-slot.free:disabled { opacity: 0.5; cursor: default; }
+.room-slot.taken { background: var(--teal); color: var(--cream); border-color: var(--teal); }
+.room-slot.taken.mine { border-color: var(--yellow); }
+.room-slot.off { background: #e6dccb; color: #7a7467; justify-content: center; align-items: center; }
+.room-slot-who { font-size: 11px; font-weight: 600; }
+.room-slot-term { font-family: Urbanist, sans-serif; font-size: 14px; font-weight: 700; line-height: 1.15; }
+.room-slot-plus, .room-slot-note { font-size: 12px; font-weight: 600; text-align: center; }
+.room-takeback {
+  align-self: center; min-height: 44px; padding: 0 12px; border: 0; background: transparent;
+  color: var(--teal); font-family: Figtree, sans-serif; font-size: 15px; font-weight: 600; text-decoration: underline; cursor: pointer;
+}
+.room-def-name { font-family: Urbanist, sans-serif; font-size: 17px; font-weight: 800; }
+.room-def-text { font-size: 14px; line-height: 1.45; }
+.room-def { display: flex; flex-direction: column; gap: 4px; }

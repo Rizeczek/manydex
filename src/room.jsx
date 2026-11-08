@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import terms from '../data/terms.json';
+import scenarios from '../data/scenarios.json';
 import { rpc } from './api.js';
 
 // Online část: místnost, lobby, odpočet a párování.
@@ -24,6 +25,11 @@ const ERRORS = {
   term_not_available: 'Tenhle pojem už na stole není.',
   definition_not_available: 'Tahle definice už na stole není.',
   nothing_selected: 'Vyber pojem i definici.',
+  slot_taken: 'Tenhle slot už někdo obsadil. Vyber jiný.',
+  slot_not_available: 'Tenhle slot v této hře nepoužíváme.',
+  not_your_card: 'Tuhle kartu nemáš v ruce.',
+  already_placed: 'Tuhle kartu už máš umístěnou.',
+  not_scenarios: 'Scénáře teď neběží.',
 };
 
 function errorText(e) {
@@ -85,6 +91,9 @@ export default function Room({ pid, nick, onCheck }) {
   const shown = useRef({ init: false, key: null, at: 0 });
   const [sheetTerm, setSheetTerm] = useState(null);
   const [sheetClosing, setSheetClosing] = useState(false);
+  const [scenarioIdx, setScenarioIdx] = useState(0);
+  const [slotPick, setSlotPick] = useState(null);
+  const [cardPick, setCardPick] = useState(null);
 
   async function load() {
     try {
@@ -107,7 +116,7 @@ export default function Room({ pid, nick, onCheck }) {
   }, []);
 
   const room = data?.room || null;
-  const finished = room?.status === 'taboo_done';
+  const finished = room?.status === 'scenarios_done';
   const selTerm = room?.state?.sel_term ?? null;
 
   // Po skončení hry čekáme, až facilitátor odemkne výstupní test
@@ -157,6 +166,11 @@ export default function Room({ pid, nick, onCheck }) {
   // Dočasně pro testování: ukončí Taboo
   function skipTaboo() {
     act('skip_taboo');
+  }
+
+  // Dočasně pro testování: ukončí scénáře
+  function skipScenarios() {
+    act('skip_scenarios');
   }
 
   async function join(ev) {
@@ -411,13 +425,57 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 4) Taboo hotové (konec zatím hotové části; další části přijdou později)
+  // 4) Scénáře: příprava a umísťování karet do slotů
+  if (room.status === 'scenarios_ready') {
+    return (
+      <ReadyScreen
+        key="scenariosReady"
+        nick={nick}
+        label={`Místnost ${room.code}`}
+        eyebrow="Scénáře"
+        title="Taboo je za vámi"
+        text="Teď umístíte své karty do scénářů. Každý má 3 karty a do jednoho slotu patří jen jedna. Začnete, až budou připraveni všichni."
+        players={players}
+        me={me}
+        busy={busy}
+        error={error}
+        onReady={(v) => act('set_scenario_ready', { p_ready: v })}
+        onSkip={skipScenarios}
+        offlineBanner={offlineBanner}
+      />
+    );
+  }
+
+  if (room.status === 'scenarios') {
+    return (
+      <ScenarioPlay
+        nick={nick}
+        room={room}
+        players={players}
+        st={st}
+        meSeat={meSeat}
+        busy={busy}
+        error={error}
+        act={act}
+        offlineBanner={offlineBanner}
+        onSkip={skipScenarios}
+        scenarioIdx={scenarioIdx}
+        setScenarioIdx={setScenarioIdx}
+        slotPick={slotPick}
+        setSlotPick={setSlotPick}
+        cardPick={cardPick}
+        setCardPick={setCardPick}
+      />
+    );
+  }
+
+  // 5) Scénáře hotové (konec zatím hotové části; další části přijdou později)
   if (finished) {
     return (
       <Shell key="finished" nick={nick} label={`Místnost ${room.code}`}>
         <div class="stack grow">
           <div class="stack gap-xs">
-            <span class="eyebrow">Taboo hotové</span>
+            <span class="eyebrow">Scénáře hotové</span>
             <h1>Skvělá práce</h1>
             <p class="muted">Další část připravujeme. Výstupní test se odemkne, až facilitátor ukončí hru.</p>
           </div>
@@ -438,7 +496,7 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 5) Párování
+  // 6) Párování
   const myMatched = me?.matched ?? 0;
   const myPairs = st.matched.filter((m) => m.seat === meSeat);
   const turnSeat = st.turn_seat;
@@ -695,5 +753,183 @@ function ResultView({ last, players, st }) {
         <p class="room-hint">{next ? `Za chvíli hraje ${next.nickname}.` : 'Hra ve skupině je u konce.'}</p>
       </div>
     </div>
+  );
+}
+
+// ---------- Scénáře ----------
+
+const POS_LABEL = { left: 'vlevo', middle: 'uprostřed', right: 'vpravo' };
+
+function slotsFor(code) {
+  const sc = scenarios.scenarios.find((x) => x.code === code);
+  return ['left', 'middle', 'right'].map((pos) => ({ pos, key: `${code}:${pos}`, term: sc.slots[pos] }));
+}
+
+function ReadyScreen({ nick, label, eyebrow, title, text, players, me, busy, error, onReady, onSkip, offlineBanner }) {
+  const readyCount = players.filter((p) => p.ready).length;
+  return (
+    <Shell key="ready" nick={nick} onSkip={onSkip} label={label}>
+      {offlineBanner}
+      <div class="stack grow">
+        <div class="stack gap-xs">
+          <span class="eyebrow">{eyebrow}</span>
+          <h1>{title}</h1>
+          <p class="muted">{text}</p>
+        </div>
+        <div class="room-list">
+          {players.map((p) => (
+            <div class={`room-row${p.ready ? ' ready' : ''}`} key={p.seat}>
+              <span class="room-avatar">{initial(p.nickname)}</span>
+              <span class="room-who">
+                <span class="room-name">{p.nickname}</span>
+                <span class="room-sub">{p.me ? 'Ty' : 'Připojen/a'}</span>
+              </span>
+              <span class={`room-badge${p.ready ? ' ready' : ''}`}>{p.ready ? 'Připraven/a ✓' : 'Čeká'}</span>
+            </div>
+          ))}
+        </div>
+        <div class="room-count">
+          <span class="muted">Připraveno</span>
+          <b>{readyCount} / {players.length}</b>
+        </div>
+      </div>
+      {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
+      {me?.ready ? (
+        <button type="button" class="btn outline" disabled={busy} onClick={() => onReady(false)}>Zrušit připravenost</button>
+      ) : (
+        <button type="button" class="btn primary" disabled={busy} onClick={() => onReady(true)}>Jsem připraven/a</button>
+      )}
+    </Shell>
+  );
+}
+
+function ScenarioPlay({
+  nick, room, players, st, meSeat, busy, error, act, offlineBanner, onSkip,
+  scenarioIdx, setScenarioIdx, slotPick, setSlotPick, cardPick, setCardPick,
+}) {
+  const pack = st.pack || [];
+  const placements = st.placements || {};
+  const sc = scenarios.scenarios[scenarioIdx];
+  const slots = slotsFor(sc.code);
+  const placedTotal = Object.keys(placements).length;
+  const myMatched = st.matched.filter((m) => m.seat === meSeat).map((m) => m.term);
+  const myPlaced = Object.entries(placements).filter(([, p]) => p.seat === meSeat);
+  const hand = myMatched.filter((t) => !myPlaced.some(([, p]) => p.term === t));
+  const doneCount = players.filter((p) => Object.values(placements).filter((x) => x.seat === p.seat).length >= p.matched).length;
+
+  function closePick() {
+    setSlotPick(null);
+    setCardPick(null);
+  }
+
+  function placeHere() {
+    const key = slotPick;
+    const term = cardPick;
+    closePick();
+    act('scenario_place', { p_slot: key, p_term: term });
+  }
+
+  return (
+    <Shell key="scenarioPlay" nick={nick} onSkip={onSkip} label={`Scénáře · ${placedTotal} / ${pack.length} umístěno`}>
+      {offlineBanner}
+      <div class="room-tabs">
+        {scenarios.scenarios.map((s, j) => {
+          const sl = slotsFor(s.code);
+          const present = sl.filter((x) => pack.includes(x.term)).length;
+          const placed = sl.filter((x) => placements[x.key]).length;
+          return (
+            <button type="button" key={s.code} class={`room-tab${j === scenarioIdx ? ' on' : ''}`} onClick={() => setScenarioIdx(j)}>
+              <span class="room-tab-num">{j + 1}</span>
+              <span class="room-tab-count">{placed} / {present}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div class="stack gap-xs">
+        <span class="eyebrow">Scénář {scenarioIdx + 1}</span>
+        <h1 class="room-scenario-title">{sc.name_cs}</h1>
+      </div>
+
+      <div class="room-scenario-art">
+        <img class="room-scenario-img" src={`assets/scenario-${sc.code}.svg`} alt={sc.name_cs} />
+        <div class="room-slots">
+          {slots.map((s) => {
+            if (!pack.includes(s.term)) {
+              return <div class="room-slot off" key={s.key}><span class="room-slot-note">Nepoužito</span></div>;
+            }
+            const p = placements[s.key];
+            if (p) {
+              const owner = p.seat === meSeat ? 'Ty' : players.find((x) => x.seat === p.seat)?.nickname;
+              return (
+                <div class={`room-slot taken${p.seat === meSeat ? ' mine' : ''}`} key={s.key}>
+                  <span class="room-slot-who">{owner}</span>
+                  <span class="room-slot-term">{termByCode[p.term].czName}</span>
+                </div>
+              );
+            }
+            return (
+              <button
+                type="button"
+                class="room-slot free"
+                key={s.key}
+                disabled={busy || hand.length === 0}
+                onClick={() => {
+                  setSlotPick(s.key);
+                  setCardPick(null);
+                }}
+              >
+                <span class="room-slot-plus">+ Vybrat kartu</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {myPlaced.filter(([k]) => k.startsWith(`${sc.code}:`)).map(([k, p]) => (
+        <button type="button" class="room-takeback" key={k} disabled={busy} onClick={() => act('scenario_take', { p_slot: k })}>
+          Vzít „{termByCode[p.term].czName}“ zpět do ruky
+        </button>
+      ))}
+
+      {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
+
+      <div class="room-note">
+        <span class="dot" />
+        <span class="small">
+          {hand.length > 0
+            ? `Umístil(a) jsi ${myPlaced.length} z ${myMatched.length} karet. Klepni na volný slot.`
+            : `Všechny tvoje karty jsou umístěné. Čekáme na ostatní (${doneCount} / ${players.length}). Do té doby můžeš karty přesouvat.`}
+        </span>
+      </div>
+
+      {slotPick && (
+        <div class="room-sheet-wrap">
+          <div class="room-sheet" role="dialog" aria-label="Výběr karty do slotu">
+            <span class="room-grip" />
+            <div class="room-sheet-head">
+              <span class="stack gap-xs">
+                <span class="room-eyebrow">{sc.name_cs} · {POS_LABEL[slotPick.split(':')[1]]}</span>
+                <h2 class="room-sheet-title">Kterou kartu sem dáš?</h2>
+              </span>
+              <button type="button" class="room-x" aria-label="Zavřít" onClick={closePick}>
+                <Icon name="close" />
+              </button>
+            </div>
+            <div class="room-defs">
+              {hand.map((t) => (
+                <button type="button" key={t} class={`room-def${cardPick === t ? ' on' : ''}`} onClick={() => setCardPick(t)}>
+                  <span class="room-def-name">{termByCode[t].czName}</span>
+                  <span class="room-def-text">{termByCode[t].definition}</span>
+                </button>
+              ))}
+            </div>
+            <button type="button" class="btn primary" disabled={busy || !cardPick} onClick={placeHere}>
+              Umístit sem
+            </button>
+          </div>
+        </div>
+      )}
+    </Shell>
   );
 }

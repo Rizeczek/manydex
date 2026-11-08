@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "language": "cs",
+  "scenarios": [
+    {
+      "code": "SC01",
+      "name_cs": "Nákup v e-shopu",
+      "slots": { "left": "UX001", "middle": "UX002", "right": "UX003" }
+    },
+    {
+      "code": "SC02",
+      "name_cs": "První spuštění aplikace",
+      "slots": { "left": "UX004", "middle": "UX006", "right": "UX005" }
+    },
+    {
+      "code": "SC03",
+      "name_cs": "Test v UX laboratoři",
+      "slots": { "left": "UX007", "middle": "UX008", "right": "UX009" }
+    },
+    {
+      "code": "SC04",
+      "name_cs": "Produktový workshop",
+      "slots": { "left": "UX010", "middle": "UX011", "right": "UX012" }
+    }
+  ]
+}
