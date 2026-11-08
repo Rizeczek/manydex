@@ -318,8 +318,18 @@ export default function Room({ pid, nick, onCheck }) {
   }
   const showResult = last?.kind === 'check' && shown.current.key === last.at && now - shown.current.at < RESULT_MS;
 
+  // Ostatní hráči vidí jen krátké hlášení o výsledku, velkou obrazovku má jen ten, kdo pár zkontroloval
+  const mover = last ? players.find((p) => p.seat === last.seat) : null;
+  const flash = showResult && last.seat !== meSeat ? (
+    <div class={`room-flash ${last.ok ? 'ok' : 'bad'}`} role="status">
+      <span class="room-flash-icon">{last.ok ? <Icon name="check" /> : '✕'}</span>
+      <span>{mover?.nickname}: {last.ok ? 'správný pár.' : 'špatný pár, karty se vracejí na stůl.'}</span>
+    </div>
+  ) : null;
+
   const boardHeader = (
     <>
+      {flash}
       <div class="room-players">
         {players.map((p) => (
           <div class={`room-player${p.seat === turnSeat ? ' turn' : ''}${p.connected ? '' : ' off'}`} key={p.seat}>
@@ -336,7 +346,7 @@ export default function Room({ pid, nick, onCheck }) {
     </>
   );
 
-  if (showResult) {
+  if (showResult && last.seat === meSeat) {
     return (
       <Shell key="result" nick={nick} label="Kontrola páru">
         <ResultView last={last} players={players} st={st} />

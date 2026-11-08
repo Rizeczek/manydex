@@ -560,3 +560,12 @@ input[type='text'] {
   .room-sheet,
   .room-count-num { animation: none !important; }
 }
+
+/* Krátké hlášení o výsledku páru pro ostatní hráče */
+.room-flash {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px;
+  font-family: Urbanist, sans-serif; font-size: 16px; font-weight: 700; animation: roomFade 0.25s ease-out backwards;
+}
+.room-flash.ok { background: var(--teal); color: var(--cream); }
+.room-flash.bad { background: var(--line); color: var(--ink); }
+.room-flash-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
