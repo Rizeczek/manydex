@@ -137,7 +137,7 @@ function Stat({ label, value }) {
   );
 }
 
-function RoomCard({ r }) {
+function RoomCard({ r, busy, open, word, onAskRemove, onWord, onConfirm, onCancel }) {
   const progress = r.status === 'defence' ? ` · ${(r.def_i ?? 0) + 1} / ${r.def_count}` : '';
   return (
     <div class="admin-room">
@@ -155,6 +155,25 @@ function RoomCard({ r }) {
           </span>
         </div>
       ))}
+      {!open && (
+        <button type="button" class="btn outline danger admin-room-btn" disabled={busy} onClick={onAskRemove}>
+          Odebrat místnost
+        </button>
+      )}
+      {open && (
+        <div class="admin-confirm">
+          <p>
+            Odebere se místnost {r.code}.
+            {r.players.length > 0 ? ` Její ${r.players.length} hráči o ni přijdou.` : ''}
+            {' '}Pro potvrzení napiš <b>SMAZAT</b>.
+          </p>
+          <div class="admin-confirm-row">
+            <input class="admin-input" value={word} aria-label={`Potvrzení odebrání místnosti ${r.code}`} onInput={(e) => onWord(e.currentTarget.value)} />
+            <button type="button" class="btn primary danger" disabled={busy || word !== 'SMAZAT'} onClick={onConfirm}>Odebrat</button>
+            <button type="button" class="admin-link" onClick={onCancel}>Zrušit</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -224,6 +243,9 @@ export default function Admin() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  const [newCode, setNewCode] = useState('');
+  const [roomOpen, setRoomOpen] = useState(null);
+  const [roomWord, setRoomWord] = useState('');
 
   function logout() {
     session.set(null);
@@ -292,7 +314,12 @@ export default function Admin() {
       await load(pass);
       return r;
     } catch (e) {
-      setErr(e.message === 'forbidden' ? 'Heslo už neplatí. Přihlas se znovu.' : `Akce se nepovedla: ${e.message}`);
+      const known = {
+        forbidden: 'Heslo už neplatí. Přihlas se znovu.',
+        room_exists: 'Místnost s tímto číslem už existuje.',
+        bad_code: 'Číslo místnosti musí být 1 až 99.',
+      };
+      setErr(known[e.message] || `Akce se nepovedla: ${e.message}`);
       return null;
     } finally {
       setBusy(false);
@@ -335,6 +362,23 @@ export default function Admin() {
       setSelected({});
       setConfirm(null);
       setWord('');
+    }
+  }
+
+  const usedCodes = new Set(rooms.map((r) => r.code));
+  const freeCode = Array.from({ length: 99 }, (_, i) => i + 1).find((c) => !usedCodes.has(c));
+
+  async function addRoom() {
+    const code = Number(newCode || freeCode);
+    const r = await run('admin_room_add', { p_code: code }, () => `Místnost ${code} přidána.`);
+    if (r !== null) setNewCode('');
+  }
+
+  async function removeRoom(room) {
+    const r = await run('admin_room_remove', { p_room: room.id }, () => `Místnost ${room.code} odebrána.`);
+    if (r !== null) {
+      setRoomOpen(null);
+      setRoomWord('');
     }
   }
 
@@ -393,7 +437,7 @@ export default function Admin() {
           <div class="admin-confirm">
             <p>
               {confirm === 'all'
-                ? `Smaže se všech ${parts.length} účastníků, všechny místnosti a všechny odpovědi. Nelze vrátit.`
+                ? `Smaže se všech ${parts.length} účastníků a všechny odpovědi. Místnosti zůstanou, jen se vyprázdní. Nelze vrátit.`
                 : `Smaže se ${ids.length} vybraných účastníků a jejich odpovědi. Nelze vrátit.`}
               {' '}Pro potvrzení napiš <b>SMAZAT</b>.
             </p>
@@ -409,10 +453,44 @@ export default function Admin() {
       </section>
 
       <section>
-        <h2 class="admin-h">Místnosti ({rooms.length})</h2>
+        <div class="admin-h-row">
+          <h2 class="admin-h">Místnosti ({rooms.length})</h2>
+        </div>
+        <div class="admin-add">
+          <input
+            class="admin-input admin-code"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            max="99"
+            value={newCode}
+            placeholder={freeCode ? String(freeCode) : ''}
+            aria-label="Číslo nové místnosti"
+            onInput={(e) => setNewCode(e.currentTarget.value)}
+          />
+          <button type="button" class="btn outline" disabled={busy || !freeCode} onClick={addRoom}>
+            Přidat místnost
+          </button>
+        </div>
         {rooms.length === 0
           ? <p class="muted">Zatím žádné místnosti.</p>
-          : <div class="admin-grid">{rooms.map((r) => <RoomCard key={r.id} r={r} />)}</div>}
+          : (
+            <div class="admin-grid">
+              {rooms.map((r) => (
+                <RoomCard
+                  key={r.id}
+                  r={r}
+                  busy={busy}
+                  open={roomOpen === r.id}
+                  word={roomOpen === r.id ? roomWord : ''}
+                  onAskRemove={() => { setRoomOpen(r.id); setRoomWord(''); }}
+                  onWord={setRoomWord}
+                  onConfirm={() => removeRoom(r)}
+                  onCancel={() => { setRoomOpen(null); setRoomWord(''); }}
+                />
+              ))}
+            </div>
+          )}
       </section>
 
       <section>

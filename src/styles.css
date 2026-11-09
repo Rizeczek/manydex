@@ -724,3 +724,10 @@ body.no-skip .skip-btn { display: none; }
 @media (min-width: 1000px) {
   .admin-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Správa místností */
+.admin-add { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+.admin-code { width: 110px; flex: 0 0 110px; }
+.admin-add .btn { flex: 0 1 auto; min-height: 48px; font-size: 15px; padding: 0 16px; }
+.admin-room-btn { min-height: 44px; font-size: 15px; margin-top: 4px; }
+.admin-room .admin-confirm { margin-top: 4px; }
