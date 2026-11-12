@@ -220,7 +220,7 @@ function App() {
       )}
 
       {view === 'room' && (
-        <Room pid={pid} nick={nick} onCheck={() => advance()} />
+        <Room pid={pid} nick={nick} onFinished={() => setView('postIntro')} />
       )}
 
       {view === 'postIntro' && (

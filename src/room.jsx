@@ -8,7 +8,6 @@ import { rpc } from './api.js';
 
 const POLL_MS = 2000;
 const CLOCK_MS = 100;
-const UNLOCK_POLL_MS = 2000;
 const RESULT_MS = 3500;
 const COUNTDOWN_MS = 5000;
 const SHEET_CLOSE_MS = 260;
@@ -81,7 +80,7 @@ function Icon({ name }) {
   return null;
 }
 
-export default function Room({ pid, nick, onCheck }) {
+export default function Room({ pid, nick, onFinished }) {
   const [data, setData] = useState(null);
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
@@ -119,13 +118,9 @@ export default function Room({ pid, nick, onCheck }) {
   const finished = room?.status === 'defence_done';
   const selTerm = room?.state?.sel_term ?? null;
 
-  // Po obhajobě databáze odemkne výstupní test online hráčům: přepneme hned,
-  // a kdyby odemčení ještě nebylo vidět, zkoušíme to znovu v krátkém intervalu
+  // Online hráči mají výstupní test otevřený od startu: po obhajobě na něj rovnou přejdeme
   useEffect(() => {
-    if (!finished) return undefined;
-    onCheck();
-    const t = setInterval(() => onCheck(), UNLOCK_POLL_MS);
-    return () => clearInterval(t);
+    if (finished) onFinished();
   }, [finished]);
 
   // Panel s definicemi: při výběru vyjede, po zrušení se zavře (drží obsah, dokud se animace nedoběhne)

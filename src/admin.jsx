@@ -202,7 +202,7 @@ function ParticipantCard({ p, a, checked, open, onToggle, onOpen }) {
   const preText = p.pre_done ? (hasPre ? `${pre.score} / ${pre.total}` : 'hotov') : 'nehotov';
   const postText = p.post_done
     ? (hasPost ? `${post.score} / ${post.total}` : 'hotov')
-    : p.post_unlocked ? 'odemčen' : 'zamčen';
+    : p.mode === 'online' ? 'po hře' : p.post_unlocked ? 'odemčen' : 'zamčen';
   return (
     <div class={`admin-part${checked ? ' sel' : ''}`}>
       <div class="admin-part-top">
@@ -332,7 +332,8 @@ export default function Admin() {
   const rooms = data.rooms || [];
   const ids = Object.keys(selected).filter((k) => selected[k]);
   const skipOn = settings.skip_enabled !== false;
-  const eligible = parts.filter((p) => p.priming_done && !p.post_done && !p.post_unlocked).length;
+  // Ruční odemčení se týká jen offline hráčů; online mají výstupní test otevřený od startu
+  const eligible = parts.filter((p) => p.mode !== 'online' && p.priming_done && !p.post_done && !p.post_unlocked).length;
   const allSelected = parts.length > 0 && ids.length === parts.length;
 
   function unlock(list) {
@@ -456,7 +457,7 @@ export default function Admin() {
         </div>
         <div class="admin-actions">
           <button type="button" class="btn secondary" disabled={busy || eligible === 0} onClick={() => unlock(null)}>
-            Odemknout výstupní test všem ({eligible})
+            Odemknout výstupní test offline hráčům ({eligible})
           </button>
           <button type="button" class="btn outline" disabled={busy || ids.length === 0} onClick={() => unlock(ids)}>
             Odemknout vybrané ({ids.length})
