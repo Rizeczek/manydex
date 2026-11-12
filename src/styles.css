@@ -747,3 +747,8 @@ body.no-skip .skip-btn { display: none; }
 .admin-add-btn:disabled { opacity: .4; cursor: default; }
 .admin-reset { display: flex; }
 .admin-reset .btn { width: 100%; }
+
+/* Panel: start online párování */
+.admin-start { gap: 8px; }
+.admin-start .btn { min-height: 52px; font-size: 16px; }
+@media (min-width: 640px) { .admin-start .btn { align-self: flex-start; padding: 0 28px; } }

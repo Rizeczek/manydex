@@ -209,7 +209,7 @@ function ParticipantCard({ p, a, checked, open, onToggle, onOpen }) {
         <input type="checkbox" checked={checked} onChange={onToggle} aria-label={`Vybrat ${p.nickname}`} />
         <button type="button" class="admin-part-name" onClick={onOpen} aria-expanded={open}>
           <b>{p.nickname}</b>
-          <span class="small muted">{p.mode === 'online' ? 'online' : 'solo'} · {fmt(p.created_at)}</span>
+          <span class="small muted">{p.mode === 'online' ? 'online' : 'offline'} · {fmt(p.created_at)}</span>
         </button>
       </div>
       <div class="admin-chips">
@@ -377,6 +377,14 @@ export default function Admin() {
     }
   }
 
+  const startable = rooms.filter((r) => r.status === 'lobby' && r.players.length >= 2).length;
+  const waitingAlone = rooms.filter((r) => r.status === 'lobby' && r.players.length === 1).length;
+
+  function startPairing() {
+    run('admin_start_pairing', {}, (n) =>
+      n > 0 ? `Párování spuštěno v ${n} místnostech.` : 'Žádná místnost nebyla připravená ke spuštění.');
+  }
+
   const freeRooms = 99 - rooms.length;
   const countNum = Number(addCount);
   const countOk = Number.isInteger(countNum) && countNum >= 1 && countNum <= freeRooms;
@@ -409,6 +417,16 @@ export default function Admin() {
 
       {err && <div class="room-alert" role="alert"><b>{err}</b></div>}
       {msg && <div class="admin-ok" role="status">{msg}</div>}
+
+      <section class="admin-card admin-start">
+        <button type="button" class="btn primary" disabled={busy || startable === 0} onClick={startPairing}>
+          Spustit online párování ({startable})
+        </button>
+        <span class="small muted">
+          Spustí místnosti v lobby se 2 a více hráči.
+          {waitingAlone > 0 ? ` ${waitingAlone} místnost(i) s jedním hráčem počká.` : ''}
+        </span>
+      </section>
 
       <section class="admin-stats">
         <Stat label="Účastníci" value={parts.length} />

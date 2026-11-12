@@ -246,59 +246,36 @@ export default function Room({ pid, nick, onCheck }) {
   const me = players.find((p) => p.seat === meSeat);
   const st = room.state || {};
 
-  // 2) Lobby a odpočet
+  // 2) Lobby: čeká se, až facilitátor spustí párování z panelu
   if (room.status === 'lobby') {
-    if (room.countdown_ms != null) {
-      const left = Math.max(0, room.countdown_ms - (now - data.fetchedAt));
-      return (
-        <Countdown
-          key="countdown"
-          nick={nick}
-          code={room.code}
-          players={players}
-          left={left}
-          busy={busy}
-          onCancel={() => act('set_ready', { p_ready: false })}
-          error={error}
-        />
-      );
-    }
-    const readyCount = players.filter((p) => p.ready).length;
     return (
       <Shell key="lobby" nick={nick} label={`Místnost ${room.code}`}>
         {offlineBanner}
         <div class="stack grow">
           <div class="stack gap-xs">
-            <h1>Čekáme na připravenost</h1>
-            <p class="muted">Hra začne, až budou připraveni všichni v místnosti (2–4 hráči).</p>
+            <h1>Vyčkejte, až facilitátor zahájí hru</h1>
+            <p class="muted">Hra začne pro všechny v místnosti najednou. Nemusíte nic dělat.</p>
           </div>
           <div class="room-list">
             {players.map((p) => (
-              <div class={`room-row${p.ready ? ' ready' : ''}`} key={p.seat}>
+              <div class="room-row" key={p.seat}>
                 <span class="room-avatar">{initial(p.nickname)}</span>
                 <span class="room-who">
                   <span class="room-name">{p.nickname}</span>
                   <span class="room-sub">{p.me ? 'Ty' : 'Připojen/a'}</span>
                 </span>
-                <span class={`room-badge${p.ready ? ' ready' : ''}`}>{p.ready ? 'Připraven/a ✓' : 'Čeká'}</span>
               </div>
             ))}
           </div>
           <div class="room-count">
-            <span class="muted">Připraveno</span>
-            <b>{readyCount} / {players.length}</b>
+            <span class="muted">V místnosti</span>
+            <b>{players.length} / 4</b>
           </div>
+          {players.length < 2 && (
+            <p class="room-hint">Na start jsou potřeba aspoň 2 hráči.</p>
+          )}
         </div>
         {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
-        {me?.ready ? (
-          <button type="button" class="btn outline" disabled={busy} onClick={() => act('set_ready', { p_ready: false })}>
-            Zrušit připravenost
-          </button>
-        ) : (
-          <button type="button" class="btn primary" disabled={busy} onClick={() => act('set_ready', { p_ready: true })}>
-            Jsem připraven/a
-          </button>
-        )}
       </Shell>
     );
   }
