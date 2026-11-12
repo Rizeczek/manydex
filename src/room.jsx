@@ -8,7 +8,7 @@ import { rpc } from './api.js';
 
 const POLL_MS = 2000;
 const CLOCK_MS = 100;
-const UNLOCK_POLL_MS = 8000;
+const UNLOCK_POLL_MS = 2000;
 const RESULT_MS = 3500;
 const COUNTDOWN_MS = 5000;
 const SHEET_CLOSE_MS = 260;
@@ -119,9 +119,11 @@ export default function Room({ pid, nick, onCheck }) {
   const finished = room?.status === 'defence_done';
   const selTerm = room?.state?.sel_term ?? null;
 
-  // Po skončení hry čekáme, až facilitátor odemkne výstupní test
+  // Po obhajobě databáze odemkne výstupní test online hráčům: přepneme hned,
+  // a kdyby odemčení ještě nebylo vidět, zkoušíme to znovu v krátkém intervalu
   useEffect(() => {
     if (!finished) return undefined;
+    onCheck();
     const t = setInterval(() => onCheck(), UNLOCK_POLL_MS);
     return () => clearInterval(t);
   }, [finished]);
@@ -490,7 +492,7 @@ export default function Room({ pid, nick, onCheck }) {
     );
   }
 
-  // 6) Obhajoba hotová (konec zatím hotové části; další části přijdou později)
+  // 6) Obhajoba hotová: krátký přechod, než se načte výstupní test
   if (finished) {
     return (
       <Shell key="finished" nick={nick} label={`Místnost ${room.code}`}>
@@ -498,12 +500,8 @@ export default function Room({ pid, nick, onCheck }) {
           <div class="stack gap-xs">
             <span class="eyebrow">Obhajoba hotová</span>
             <h1>Skvělá práce</h1>
-            <p class="muted">Další část připravujeme. Výstupní test se odemkne, až facilitátor ukončí hru.</p>
+            <p class="muted">Načítám výstupní test…</p>
           </div>
-        </div>
-        <div class="room-note">
-          <span class="dot" />
-          <span class="small">Telefon teď nepotřebuješ, dokud facilitátor nezačne další část.</span>
         </div>
       </Shell>
     );
