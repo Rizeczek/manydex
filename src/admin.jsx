@@ -243,9 +243,10 @@ export default function Admin() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
-  const [newCode, setNewCode] = useState('');
+  const [addCount, setAddCount] = useState('');
   const [roomOpen, setRoomOpen] = useState(null);
   const [roomWord, setRoomWord] = useState('');
+  const [resetOpen, setResetOpen] = useState(false);
 
   function logout() {
     session.set(null);
@@ -304,6 +305,7 @@ export default function Admin() {
     );
   }
 
+  // Vrací true, když akce proběhla (výsledek funkce může být i null)
   async function run(fn, args, okText) {
     setBusy(true);
     setErr('');
@@ -312,7 +314,7 @@ export default function Admin() {
       const r = await rpc(fn, { p_pass: pass, ...args });
       setMsg(okText(r));
       await load(pass);
-      return r;
+      return true;
     } catch (e) {
       const known = {
         forbidden: 'Heslo už neplatí. Přihlas se znovu.',
@@ -320,7 +322,7 @@ export default function Admin() {
         bad_code: 'Číslo místnosti musí být 1 až 99.',
       };
       setErr(known[e.message] || `Akce se nepovedla: ${e.message}`);
-      return null;
+      return false;
     } finally {
       setBusy(false);
     }
@@ -339,17 +341,17 @@ export default function Admin() {
 
   async function toggleSkip() {
     const next = !skipOn;
-    const r = await run('admin_set_setting', { p_key: 'skip_enabled', p_value: next }, () =>
-      next ? 'SKIP je zapnutý.' : 'SKIP je skrytý.');
-    if (r !== null) {
+    const ok = await run('admin_set_setting', { p_key: 'skip_enabled', p_value: next }, () =>
+      next ? 'SKIP button je zapnutý.' : 'SKIP button je vypnutý, tlačítko je skryté.');
+    if (ok) {
       setSettings({ ...settings, skip_enabled: next });
       document.body.classList.toggle('no-skip', !next);
     }
   }
 
   async function removeSelected() {
-    const r = await run('admin_delete', { p_ids: ids }, (n) => `Smazáno ${n} účastníků.`);
-    if (r !== null) {
+    const ok = await run('admin_delete', { p_ids: ids }, (n) => `Smazáno ${n} účastníků.`);
+    if (ok) {
       setSelected({});
       setConfirm(null);
       setWord('');
@@ -357,26 +359,36 @@ export default function Admin() {
   }
 
   async function removeAll() {
-    const r = await run('admin_delete', { p_ids: null }, (n) => `Smazáno všech ${n} účastníků a místností.`);
-    if (r !== null) {
+    const ok = await run('admin_delete', { p_ids: null }, (n) => `Smazáno všech ${n} účastníků. Místnosti zůstaly, jen jsou prázdné.`);
+    if (ok) {
       setSelected({});
       setConfirm(null);
       setWord('');
     }
   }
 
-  const usedCodes = new Set(rooms.map((r) => r.code));
-  const freeCode = Array.from({ length: 99 }, (_, i) => i + 1).find((c) => !usedCodes.has(c));
+  async function totalReset() {
+    const ok = await run('admin_total_reset', {}, (n) => `Úplný reset hotový: smazáno ${n} účastníků, místnosti 1–20 znovu vytvořeny.`);
+    if (ok) {
+      setSelected({});
+      setOpenPid(null);
+      setResetOpen(false);
+      setWord('');
+    }
+  }
 
-  async function addRoom() {
-    const code = Number(newCode || freeCode);
-    const r = await run('admin_room_add', { p_code: code }, () => `Místnost ${code} přidána.`);
-    if (r !== null) setNewCode('');
+  const freeRooms = 99 - rooms.length;
+  const countNum = Number(addCount);
+  const countOk = Number.isInteger(countNum) && countNum >= 1 && countNum <= freeRooms;
+
+  async function addRooms() {
+    const ok = await run('admin_rooms_add', { p_count: countNum }, (n) => `Přidáno ${n} místností.`);
+    if (ok) setAddCount('');
   }
 
   async function removeRoom(room) {
-    const r = await run('admin_room_remove', { p_room: room.id }, () => `Místnost ${room.code} odebrána.`);
-    if (r !== null) {
+    const ok = await run('admin_room_remove', { p_room: room.id }, () => `Místnost ${room.code} odebrána.`);
+    if (ok) {
       setRoomOpen(null);
       setRoomWord('');
     }
@@ -407,10 +419,23 @@ export default function Admin() {
 
       <section class="admin-card">
         <h2>Ovládání</h2>
-        <label class="admin-switch">
-          <input type="checkbox" checked={skipOn} disabled={busy} onChange={toggleSkip} />
-          <span>Tlačítko SKIP (pro testování)</span>
-        </label>
+        <div class="admin-switch-row">
+          <div class="stack gap-xs">
+            <span class="admin-switch-label" id="skip-label">SKIP button</span>
+            <span class="small muted">{skipOn ? 'Zapnuto: tlačítko SKIP je vidět.' : 'Vypnuto: tlačítko SKIP je skryté.'}</span>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={skipOn}
+            aria-labelledby="skip-label"
+            class={`admin-toggle${skipOn ? ' on' : ''}`}
+            disabled={busy}
+            onClick={toggleSkip}
+          >
+            <span class="admin-toggle-knob" />
+          </button>
+        </div>
         <div class="admin-actions">
           <button type="button" class="btn secondary" disabled={busy || eligible === 0} onClick={() => unlock(null)}>
             Odemknout výstupní test všem ({eligible})
@@ -433,6 +458,24 @@ export default function Admin() {
             Smazat všechny sessions ({parts.length})
           </button>
         </div>
+        <div class="admin-reset">
+          <button type="button" class="btn outline danger" disabled={busy} onClick={() => { setResetOpen(true); setWord(''); }}>
+            Úplný reset (smazat vše, místnosti 1–20)
+          </button>
+        </div>
+        {resetOpen && (
+          <div class="admin-confirm">
+            <p>
+              Smaže se všech {parts.length} účastníků, všechny odpovědi a všechny místnosti. Potom se vytvoří místnosti 1–20 bez hráčů. Nelze vrátit.
+              {' '}Pro potvrzení napiš <b>SMAZAT</b>.
+            </p>
+            <div class="admin-confirm-row">
+              <input class="admin-input" value={word} aria-label="Potvrzení úplného resetu" onInput={(e) => setWord(e.currentTarget.value)} />
+              <button type="button" class="btn primary danger" disabled={busy || word !== 'SMAZAT'} onClick={totalReset}>Resetovat vše</button>
+              <button type="button" class="admin-link" onClick={() => { setResetOpen(false); setWord(''); }}>Zrušit</button>
+            </div>
+          </div>
+        )}
         {confirm && (
           <div class="admin-confirm">
             <p>
@@ -458,19 +501,23 @@ export default function Admin() {
         </div>
         <div class="admin-add">
           <input
-            class="admin-input admin-code"
-            type="number"
+            class="admin-input admin-count"
+            type="text"
             inputMode="numeric"
-            min="1"
-            max="99"
-            value={newCode}
-            placeholder={freeCode ? String(freeCode) : ''}
-            aria-label="Číslo nové místnosti"
-            onInput={(e) => setNewCode(e.currentTarget.value)}
+            pattern="[0-9]*"
+            placeholder="počet"
+            value={addCount}
+            aria-label="Kolik místností přidat"
+            onInput={(e) => {
+              const digits = e.currentTarget.value.replace(/\D/g, '');
+              e.currentTarget.value = digits;
+              setAddCount(digits);
+            }}
           />
-          <button type="button" class="btn outline" disabled={busy || !freeCode} onClick={addRoom}>
-            Přidat místnost
+          <button type="button" class="admin-add-btn" disabled={busy || !countOk} onClick={addRooms}>
+            Přidat
           </button>
+          <span class="small muted">volných míst: {freeRooms}</span>
         </div>
         {rooms.length === 0
           ? <p class="muted">Zatím žádné místnosti.</p>

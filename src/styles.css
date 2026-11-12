@@ -731,3 +731,19 @@ body.no-skip .skip-btn { display: none; }
 .admin-add .btn { flex: 0 1 auto; min-height: 48px; font-size: 15px; padding: 0 16px; }
 .admin-room-btn { min-height: 44px; font-size: 15px; margin-top: 4px; }
 .admin-room .admin-confirm { margin-top: 4px; }
+
+/* Panel v3: přepínač SKIP, počet místností, úplný reset */
+.admin-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; }
+.admin-switch-label { font-size: 16px; font-weight: 700; }
+.admin-toggle { position: relative; flex-shrink: 0; width: 56px; height: 32px; padding: 0; border: 0; border-radius: 16px; background: var(--line-dash); cursor: pointer; transition: background 0.2s ease; }
+.admin-toggle.on { background: var(--teal); }
+.admin-toggle:disabled { opacity: .5; cursor: default; }
+.admin-toggle-knob { position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform 0.2s ease; }
+.admin-toggle.on .admin-toggle-knob { transform: translateX(24px); }
+.admin-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.admin-count { width: 96px; flex: 0 0 96px; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+.admin-count::-webkit-outer-spin-button, .admin-count::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.admin-add-btn { min-height: 44px; padding: 0 18px; border-radius: 12px; border: 2px solid var(--teal); background: var(--teal); color: var(--cream); font-family: Figtree, sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; width: auto; }
+.admin-add-btn:disabled { opacity: .4; cursor: default; }
+.admin-reset { display: flex; }
+.admin-reset .btn { width: 100%; }
