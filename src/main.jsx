@@ -5,6 +5,7 @@ import tests from '../data/tests.json';
 import { rpc } from './api.js';
 import Room from './room.jsx';
 import Admin from './admin.jsx';
+import Evaluation, { evalItems } from './evaluation.jsx';
 import './styles.css';
 
 const PID_KEY = 'manydex_pid';
@@ -27,6 +28,7 @@ function nextView(s) {
   if (!s.pre_done) return 'pretestIntro';
   if (!s.priming_done) return 'primingIntro';
   if (s.post_done) return 'done';
+  if (s.post_answered) return 'evalIntro';
   if (s.post_unlocked) return 'postIntro';
   return s.mode === 'online' ? 'room' : 'waiting';
 }
@@ -245,6 +247,35 @@ function App() {
             setError('');
             try {
               await rpc('save_test_answers', { p_id: pid, p_test: 'post', p_answers: answers });
+              setView('evalIntro');
+            } catch (e) {
+              setError('Odpovědi se nepodařilo uložit. Zkus to znovu.');
+            }
+          }}
+        />
+      )}
+
+      {view === 'evalIntro' && (
+        <div class="page stack">
+          {bar('Hodnocení hry')}
+          <div class="stack grow">
+            <span class="eyebrow">Výstupní test hotový</span>
+            <h1>Ještě krátké hodnocení hry</h1>
+            <p>{evalItems(st?.mode).length} otázek, zabere to asi 4 minuty. Většinou odpovídáš na škále 1 až 5. Poslední tři otázky jsou nepovinné.</p>
+          </div>
+          <button type="button" class="btn secondary" onClick={() => setView('eval')}>Začít hodnocení</button>
+        </div>
+      )}
+
+      {view === 'eval' && (
+        <Evaluation
+          mode={st?.mode}
+          topBar={bar('Hodnocení hry')}
+          skippable
+          onDone={async (answers) => {
+            setError('');
+            try {
+              await rpc('save_test_answers', { p_id: pid, p_test: 'eval', p_answers: answers });
               await rpc('save_progress', { p_id: pid, p_step: 'post_done' });
               await advance();
             } catch (e) {

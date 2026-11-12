@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import tests from '../data/tests.json';
 import { rpc } from './api.js';
+import { EVAL_IDS, evalItems } from './evaluation.jsx';
 
 // Panel facilitátora (#/admin). Přístup chrání heslo, které kontroluje databáze.
 // Data se obnovují každé 3 s; skóre se počítá podle správných klíčů v tests.json.
@@ -58,7 +59,8 @@ function grade(list, answers) {
 function buildAnswerMap(rows) {
   const map = {};
   for (const r of rows) {
-    if (!map[r.pid]) map[r.pid] = { pre: {}, post: {} };
+    if (!map[r.pid]) map[r.pid] = { pre: {}, post: {}, eval: {} };
+    if (!map[r.pid][r.test]) map[r.pid][r.test] = {};
     map[r.pid][r.test][r.q] = r.a;
   }
   return map;
@@ -70,6 +72,7 @@ function toCsv(list, answers) {
     'pre_score', 'post_score',
     ...PRE.map((q) => `pre_${q.id}`),
     ...POST.map((q) => `post_${q.id}`),
+    ...EVAL_IDS.map((id) => `eval_${id}`),
   ];
   const esc = (v) => {
     const s = v == null ? '' : String(v);
@@ -77,7 +80,8 @@ function toCsv(list, answers) {
   };
   const lines = [cols.join(',')];
   for (const p of list) {
-    const a = answers[p.id] || { pre: {}, post: {} };
+    const a = answers[p.id] || { pre: {}, post: {}, eval: {} };
+    const ev = a.eval || {};
     const pre = grade(PRE, a.pre);
     const post = grade(POST, a.post);
     const hasPre = Object.keys(a.pre).length > 0;
@@ -87,6 +91,7 @@ function toCsv(list, answers) {
       hasPre ? pre.score : '', hasPost ? post.score : '',
       ...PRE.map((q) => a.pre[q.id] ?? ''),
       ...POST.map((q) => a.post[q.id] ?? ''),
+      ...EVAL_IDS.map((id) => ev[id] ?? ''),
     ];
     lines.push(vals.map(esc).join(','));
   }
@@ -199,6 +204,8 @@ function ParticipantCard({ p, a, checked, open, onToggle, onOpen }) {
   const post = grade(POST, a?.post || {});
   const hasPre = Object.keys(a?.pre || {}).length > 0;
   const hasPost = Object.keys(a?.post || {}).length > 0;
+  const ev = a?.eval || {};
+  const hasEval = Object.keys(ev).length > 0;
   const preText = p.pre_done ? (hasPre ? `${pre.score} / ${pre.total}` : 'hotov') : 'nehotov';
   const postText = p.post_done
     ? (hasPost ? `${post.score} / ${post.total}` : 'hotov')
@@ -216,6 +223,7 @@ function ParticipantCard({ p, a, checked, open, onToggle, onOpen }) {
         <span class={`admin-chip${p.pre_done ? ' ok' : ''}`}>Pre: {preText}</span>
         <span class={`admin-chip${p.priming_done ? ' ok' : ''}`}>Priming: {p.priming_done ? 'hotov' : '–'}</span>
         <span class={`admin-chip${p.post_done ? ' ok' : ''}`}>Post: {postText}</span>
+        <span class={`admin-chip${hasEval ? ' ok' : ''}`}>Hodnocení: {hasEval ? 'hotovo' : '–'}</span>
       </div>
       {open && (
         <div class="admin-detail">
@@ -223,6 +231,18 @@ function ParticipantCard({ p, a, checked, open, onToggle, onOpen }) {
           {hasPre ? <QuestionList list={PRE} result={pre} /> : <p class="small muted">Bez odpovědí.</p>}
           <h3>Post-test</h3>
           {hasPost ? <QuestionList list={POST} result={post} /> : <p class="small muted">Bez odpovědí.</p>}
+          <h3>Hodnocení hry</h3>
+          {hasEval ? (
+            <div class="admin-eval">
+              {evalItems(p.mode).map((it) => (
+                <div class="admin-eval-row" key={it.id}>
+                  <span class="admin-q-id">{it.id}</span>
+                  <span class="admin-eval-q">{it.prompt}</span>
+                  <b class="admin-eval-a">{ev[it.id] ?? '–'}</b>
+                </div>
+              ))}
+            </div>
+          ) : <p class="small muted">Bez odpovědí.</p>}
         </div>
       )}
     </div>

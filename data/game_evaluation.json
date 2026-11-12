@@ -1,0 +1,271 @@
+{
+  "version": "1.0",
+  "language": "cs",
+  "note": "Hodnocení hry v post-testu. Zobrazuje se až po 12 znalostních otázkách post-testu. Varianta se vybírá automaticky podle režimu zvoleného v úvodu (online = Online, onsite = Na místě). Položky s 'prompt' jsou stejné pro obě varianty, položky s 'prompt_by_variant' se liší. Likertovy škály 1–5, popsané jsou jen krajní body.",
+  "variants": {
+    "online": "Online hra v aplikaci přes Teams",
+    "onsite": "Karetní hra na místě"
+  },
+  "item_types": {
+    "likert5": "Škála 1–5, zobrazit min_label u 1 a max_label u 5",
+    "single_choice": "Jedna možnost z 'options'",
+    "text_short": "Krátká textová odpověď",
+    "text_long": "Dlouhá textová odpověď"
+  },
+  "item_count": 23,
+  "sections": [
+    {
+      "id": "A",
+      "title": "Celkový dojem",
+      "items": [
+        {
+          "id": "A1",
+          "type": "likert5",
+          "prompt": "Jak moc vás hra bavila?",
+          "min_label": "Vůbec mě nebavila",
+          "max_label": "Velmi mě bavila",
+          "required": true,
+          "source_2025": false
+        },
+        {
+          "id": "A2",
+          "type": "likert5",
+          "prompt": "Jak zábavná byla hra ve srovnání s tradičními způsoby učení (četba, přednáška)?",
+          "min_label": "Mnohem méně zábavná",
+          "max_label": "Mnohem zábavnější",
+          "required": true,
+          "source_2025": true
+        },
+        {
+          "id": "A3",
+          "type": "likert5",
+          "prompt": "Jak účinná je podle vás hra pro učení nových pojmů z UX (např. pro začínající designéry)?",
+          "min_label": "Vůbec neúčinná",
+          "max_label": "Velmi účinná",
+          "required": true,
+          "source_2025": true
+        },
+        {
+          "id": "A4",
+          "type": "likert5",
+          "prompt": "Kolik nového jste se podle sebe během hry naučili?",
+          "min_label": "Nic nového",
+          "max_label": "Velmi mnoho nového",
+          "required": true,
+          "source_2025": true,
+          "source_note": "V roce 2025 jako Ano/Ne, nyní škála – není přímo srovnatelné."
+        },
+        {
+          "id": "A5",
+          "type": "likert5",
+          "prompt": "Dokážete si představit, že byste hru použili se spolužáky nebo kolegy ke studiu?",
+          "min_label": "Rozhodně ne",
+          "max_label": "Rozhodně ano",
+          "required": true,
+          "source_2025": true
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Jednotlivé části hry",
+      "intro": "Nakolik vám tato část hry pomohla pochopit a zapamatovat si pojmy?",
+      "items": [
+        {
+          "id": "B1",
+          "type": "likert5",
+          "phase": "priming",
+          "prompt": "Priming (procházení karet s pojmy v aplikaci před hrou)",
+          "min_label": "Vůbec nepomohla",
+          "max_label": "Velmi pomohla",
+          "required": true
+        },
+        {
+          "id": "B2",
+          "type": "likert5",
+          "phase": "pairing",
+          "prompt": "Párování (spojování pojmů se správnými definicemi)",
+          "min_label": "Vůbec nepomohla",
+          "max_label": "Velmi pomohla",
+          "required": true
+        },
+        {
+          "id": "B3",
+          "type": "likert5",
+          "phase": "taboo",
+          "prompt": "Taboo (vysvětlování pojmů bez zakázaných slov)",
+          "min_label": "Vůbec nepomohla",
+          "max_label": "Velmi pomohla",
+          "required": true
+        },
+        {
+          "id": "B4",
+          "type": "likert5",
+          "phase": "scenarios",
+          "prompt": "Scénáře (umísťování pojmů do situací ze života)",
+          "min_label": "Vůbec nepomohla",
+          "max_label": "Velmi pomohla",
+          "required": true
+        },
+        {
+          "id": "B5",
+          "type": "likert5",
+          "phase": "defense",
+          "prompt": "Obhajoba (zdůvodnění umístění a hlasování skupiny)",
+          "min_label": "Vůbec nepomohla",
+          "max_label": "Velmi pomohla",
+          "required": true
+        },
+        {
+          "id": "B6",
+          "type": "single_choice",
+          "prompt": "Která část hry vás bavila nejvíc?",
+          "options": [
+            { "key": "priming", "text": "Priming" },
+            { "key": "pairing", "text": "Párování" },
+            { "key": "taboo", "text": "Taboo" },
+            { "key": "scenarios", "text": "Scénáře" },
+            { "key": "defense", "text": "Obhajoba" }
+          ],
+          "required": true
+        },
+        {
+          "id": "B7",
+          "type": "single_choice",
+          "prompt": "Která část pro vás byla nejméně srozumitelná (co máte dělat, jaká jsou pravidla)?",
+          "options": [
+            { "key": "priming", "text": "Priming" },
+            { "key": "pairing", "text": "Párování" },
+            { "key": "taboo", "text": "Taboo" },
+            { "key": "scenarios", "text": "Scénáře" },
+            { "key": "defense", "text": "Obhajoba" },
+            { "key": "none", "text": "Všechny byly srozumitelné" }
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Vizuální stránka a médium",
+      "items": [
+        {
+          "id": "C1",
+          "type": "likert5",
+          "prompt": "Jak se vám líbila vizuální stránka hry (karty, ilustrace, barvy, písmo)?",
+          "min_label": "Vůbec se mi nelíbila",
+          "max_label": "Velmi se mi líbila",
+          "required": true
+        },
+        {
+          "id": "C2",
+          "type": "likert5",
+          "prompt": "Ilustrace u pojmů mi pomohly pojem pochopit nebo si ho zapamatovat.",
+          "min_label": "Rozhodně nesouhlasím",
+          "max_label": "Rozhodně souhlasím",
+          "required": true
+        },
+        {
+          "id": "C3",
+          "type": "likert5",
+          "prompt_by_variant": {
+            "online": "Jak snadno se vám během hry ovládala aplikace?",
+            "onsite": "Jak snadno se vám s kartami pracovalo (čitelnost textu, orientace v kartách)?"
+          },
+          "min_label": "Velmi obtížně",
+          "max_label": "Velmi snadno",
+          "required": true
+        },
+        {
+          "id": "C4",
+          "type": "likert5",
+          "prompt_by_variant": {
+            "online": "Jak plynule probíhala hra ve skupině přes Teams (domluva, čekání na ostatní, připojení)?",
+            "onsite": "Jak plynule probíhala hra ve skupině u stolu (střídání, práce s kartami, dodržování pravidel)?"
+          },
+          "min_label": "S velkými potížemi",
+          "max_label": "Zcela plynule",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Prožitek ze hry",
+      "items": [
+        {
+          "id": "D1",
+          "type": "likert5",
+          "construct": "PENS – kompetence",
+          "prompt": "Během hry jsem měl/a pocit, že úkoly zvládám.",
+          "min_label": "Rozhodně nesouhlasím",
+          "max_label": "Rozhodně souhlasím",
+          "required": true
+        },
+        {
+          "id": "D2",
+          "type": "likert5",
+          "construct": "PENS – autonomie",
+          "prompt": "Hra mi dávala prostor rozhodovat se po svém (jak pojem vysvětlím, kam kartu umístím).",
+          "min_label": "Rozhodně nesouhlasím",
+          "max_label": "Rozhodně souhlasím",
+          "required": true
+        },
+        {
+          "id": "D3",
+          "type": "likert5",
+          "construct": "PENS – vztah",
+          "prompt": "Při hře jsem se se spoluhráči cítil/a jako součást týmu.",
+          "min_label": "Rozhodně nesouhlasím",
+          "max_label": "Rozhodně souhlasím",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "N",
+      "title": "Náročnost",
+      "note": "Jediná škála, kde 5 neznamená lepší hodnocení. Krajní popisky zobrazit výrazně.",
+      "items": [
+        {
+          "id": "D4",
+          "type": "likert5",
+          "construct": "Vnímaná kognitivní zátěž (Paas, 1992; zkráceno na 5 bodů)",
+          "prompt": "Kolik duševního úsilí vás hra stála?",
+          "min_label": "Velmi málo úsilí",
+          "max_label": "Velmi mnoho úsilí",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Otevřené otázky",
+      "items": [
+        {
+          "id": "E1",
+          "type": "text_short",
+          "prompt": "Co vám ve hře nejvíc pomohlo nebo vám z ní nejvíc utkvělo?",
+          "required": false,
+          "source_2025": true
+        },
+        {
+          "id": "E2",
+          "type": "text_long",
+          "prompt": "Co byste na hře změnili? Tipy, doporučení, další zpětná vazba.",
+          "required": false,
+          "source_2025": true
+        },
+        {
+          "id": "E3",
+          "type": "text_short",
+          "prompt_by_variant": {
+            "online": "Narazili jste v aplikaci na technický problém? Pokud ano, jaký a v jaké části?",
+            "onsite": "Bylo na kartách něco nečitelného nebo matoucího? Pokud ano, co?"
+          },
+          "required": false
+        }
+      ]
+    }
+  ]
+}
