@@ -930,14 +930,14 @@ function ScenarioPlay({
 
       {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
 
-      <div class="room-note">
-        <span class="dot" />
-        <span class="small">
-          {hand.length > 0
-            ? `Umístil(a) jsi ${myPlaced.length} z ${myMatched.length} karet. Klepni na volný slot.`
-            : `Všechny tvoje karty jsou umístěné. Čekáme na ostatní (${doneCount} / ${players.length}). Do té doby můžeš karty přesouvat.`}
-        </span>
-      </div>
+      {hand.length === 0 && (
+        <div class="room-note">
+          <span class="dot" />
+          <span class="small">
+            {`Všechny tvoje karty jsou umístěné. Čekáme na ostatní (${doneCount} / ${players.length}). Do té doby můžeš karty přesouvat.`}
+          </span>
+        </div>
+      )}
 
       {slotPick && (
         <div class="room-sheet-wrap">
