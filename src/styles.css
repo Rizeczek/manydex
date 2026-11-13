@@ -785,3 +785,12 @@ body.no-skip .skip-btn { display: none; }
 .admin-eval { display: flex; flex-direction: column; gap: 4px; }
 .admin-eval-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 8px; align-items: start; padding: 6px 8px; border-radius: 10px; background: var(--bg); font-size: 13px; line-height: 1.35; }
 .admin-eval-a { text-align: right; max-width: 45vw; overflow-wrap: anywhere; }
+
+/* Scénáře: pevné záložky a hláška, posouvá se jen ilustrace se sloty */
+.page.room-fit { overflow: hidden; }
+.room-fit > * { flex-shrink: 0; }
+.room-fit > .room-scenario-scroll {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+}
+.room-scenario-scroll > * { flex-shrink: 0; }

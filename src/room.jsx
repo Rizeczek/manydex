@@ -39,9 +39,10 @@ function initial(nick) {
   return (nick || '?').trim().charAt(0).toUpperCase();
 }
 
-function Shell({ nick, label, onSkip, children }) {
+// fit: obrazovka se neposouvá jako celek, posouvá se jen její vnitřní oblast (scénáře)
+function Shell({ nick, label, onSkip, fit = false, children }) {
   return (
-    <div class="page stack room">
+    <div class={`page stack room${fit ? ' room-fit' : ''}`}>
       <div class="topbar">
         <div class="who"><span class="avatar">{initial(nick)}</span>{nick}</div>
         <span class="tag">{label}</span>
@@ -857,7 +858,7 @@ function ScenarioPlay({
   }
 
   return (
-    <Shell key="scenarioPlay" nick={nick} onSkip={onSkip} label={`Scénáře · ${placedTotal} / ${pack.length} umístěno`}>
+    <Shell key="scenarioPlay" nick={nick} onSkip={onSkip} fit label={`Scénáře · ${placedTotal} / ${pack.length} umístěno`}>
       {offlineBanner}
       <div class="room-tabs">
         {scenarios.scenarios.map((s, j) => {
@@ -878,7 +879,7 @@ function ScenarioPlay({
         <h1 class="room-scenario-title">{sc.name_cs}</h1>
       </div>
 
-      <div class="room-scenario-art">
+      <div class="room-scenario-art room-scenario-scroll">
         <img class="room-scenario-img" src={`assets/scenario-${sc.code}.svg`} alt={sc.name_cs} />
         <div class="room-slots">
           {slots.map((s) => {
@@ -930,14 +931,14 @@ function ScenarioPlay({
 
       {error && <div class="room-alert" role="alert"><b>{error}</b></div>}
 
-      {hand.length === 0 && (
-        <div class="room-note">
-          <span class="dot" />
-          <span class="small">
-            {`Všechny tvoje karty jsou umístěné. Čekáme na ostatní (${doneCount} / ${players.length}). Do té doby můžeš karty přesouvat.`}
-          </span>
-        </div>
-      )}
+      <div class="room-note">
+        <span class="dot" />
+        <span class="small">
+          {hand.length > 0
+            ? `Umístil(a) jsi ${myPlaced.length} z ${myMatched.length} karet. Klepni na volný slot.`
+            : `Všechny tvoje karty jsou umístěné. Čekáme na ostatní (${doneCount} / ${players.length}). Do té doby můžeš karty přesouvat.`}
+        </span>
+      </div>
 
       {slotPick && (
         <div class="room-sheet-wrap">
